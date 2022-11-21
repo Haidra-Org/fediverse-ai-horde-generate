@@ -50,11 +50,10 @@ generic_submit_dict = {
 def check_for_requests():
     last_parsed_notification = db_r.get("last_parsed_id")
     if last_parsed_notification != None:
-        last_parsed_notification = {"id": int(last_parsed_notification)}
-        # last_parsed_notification = int(last_parsed_notification)
+        last_parsed_notification = int(last_parsed_notification)
     logger.debug(f"Last notification ID: {last_parsed_notification}")
     notifications = mastodon.notifications(
-        since_id=last_parsed_notification,  # doesn't work atm https://github.com/halcy/Mastodon.py/issues/270
+        since_id={"id": last_parsed_notification},  # doesn't work atm https://github.com/halcy/Mastodon.py/issues/270
         exclude_types=["follow", "favourite", "reblog", "poll", "follow_request"]
     )
     notifications.reverse()
