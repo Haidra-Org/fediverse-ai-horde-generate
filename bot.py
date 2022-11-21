@@ -30,7 +30,7 @@ mastodon = Mastodon(
 
 HORDE_URL = "https://stablehorde.net"
 imgen_params = {
-    "n": 2,
+    "n": 4,
     "width": 512,
     "height":512,
     "steps": 30,
