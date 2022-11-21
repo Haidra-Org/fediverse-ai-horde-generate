@@ -59,6 +59,7 @@ def check_for_requests():
     )
     notifications.reverse()
     # pp.pprint(notifications)
+    logger.info(f"Retrieved {len(notification)} notifications.")
     for notification in notifications:
         incoming_status = notification["status"]
         request_id = incoming_status["id"]
