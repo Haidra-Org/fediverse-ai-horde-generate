@@ -141,7 +141,12 @@ def check_for_requests():
             tags_string += f" #{t}"
         for iter in range(4):
             try:
-                mastodon.status_reply(to_status=incoming_status, status=f"Here are some images matching your prompt\n\n#aiart #stablediffusion #stablehorde{tags_string}", media_ids=media_dicts)
+                mastodon.status_reply(
+                    to_status=incoming_status,
+                    status=f"Here are some images matching your prompt\n\n#aiart #stablediffusion #stablehorde{tags_string}", 
+                    media_ids=media_dicts,
+                    spoiler_text="AI Generated Images",
+                )
                 break
             except (MastodonGatewayTimeoutError, MastodonNetworkError) as e:
                 if iter >= 3:
