@@ -126,7 +126,7 @@ def check_for_requests():
                     try:
                         media_dict = mastodon.media_post(media_file=final_filename, description=f"Image with seed {seed} generated via Stable Diffusion through @stablehorde@sigmoid.social. Prompt: {prompt}")
                         break
-                    except (MastodonGatewayTimeoutError, MastodonNetworkError) as e:
+                    except (MastodonGatewayTimeoutError, MastodonNetworkError, MastodonBadGatewayError) as e:
                         if iter >= 3:
                             raise e
                         logger.warning(f"Network error when uploading files. Retry {iter+1}/3")
@@ -148,7 +148,7 @@ def check_for_requests():
                     spoiler_text="AI Generated Images",
                 )
                 break
-            except (MastodonGatewayTimeoutError, MastodonNetworkError) as e:
+            except (MastodonGatewayTimeoutError, MastodonNetworkError, MastodonBadGatewayError) as e:
                 if iter >= 3:
                     raise e
                 logger.warning(f"Network error when replying. Retry {iter+1}/3")
@@ -164,7 +164,7 @@ try:
         try:
             check_for_requests()
             time.sleep(5)
-        except (MastodonGatewayTimeoutError, MastodonNetworkError):
+        except (MastodonGatewayTimeoutError, MastodonNetworkError, MastodonBadGatewayError):
             logger.warning("MastodonNetworkError skipping iteration")
         except MastodonNotFoundError:
             logger.warning("MastodonNotFoundError post was deleted")
