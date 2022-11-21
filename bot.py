@@ -1,6 +1,6 @@
 import requests, json, os, time, argparse, base64
 from mastodon import Mastodon
-from mastodon.Mastodon import MastodonNetworkError, MastodonNotFoundError
+from mastodon.Mastodon import MastodonNetworkError, MastodonNotFoundError, MastodonGatewayTimeoutError
 from bot import args, logger, get_bot_db, is_redis_up, set_logger_verbosity, quiesce_logger
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
@@ -122,6 +122,14 @@ def check_for_requests():
                 seed = results[iter]["seed"]
                 seeds.append(seed)
                 img.save(final_filename)
+                for iter in range(4):
+                    try:
+                        media_dict = mastodon.media_post(media_file=final_filename, description=f"Image with seed {seed} generated via Stable Diffusion through @stablehorde@sigmoid.social. Prompt: {prompt}")
+                        break
+                    except (MastodonGatewayTimeoutError, MastodonNetworkError) as e:
+                        if iter >= 3:
+                            raise e
+                        logger.warning(f"Network error when uploading files. Retry {iter+1}/3")
                 media_dict = mastodon.media_post(media_file=final_filename, description=f"Image with seed {seed} generated via Stable Diffusion through @stablehorde@sigmoid.social. Prompt: {prompt}")
                 media_dicts.append(media_dict)
                 logger.info(f"Saved {final_filename}")
@@ -131,7 +139,14 @@ def check_for_requests():
         tags_string = ''
         for t in tags:
             tags_string += f" #{t}"
-        mastodon.status_reply(to_status=incoming_status, status=f"Here are some images matching your prompt\n\n#aiart #stablediffusion #stablehorde{tags_string}", media_ids=media_dicts)
+        for iter in range(4):
+            try:
+                mastodon.status_reply(to_status=incoming_status, status=f"Here are some images matching your prompt\n\n#aiart #stablediffusion #stablehorde{tags_string}", media_ids=media_dicts)
+                break
+            except (MastodonGatewayTimeoutError, MastodonNetworkError) as e:
+                if iter >= 3:
+                    raise e
+                logger.warning(f"Network error when replying. Retry {iter+1}/3")
         # mastodon.status_reply(to_status=incoming_status, status="Here is your generation", media_ids=media_dict)
         if request_id > last_parsed_notification:
             db_r.set("last_parsed_id",request_id)
@@ -144,7 +159,7 @@ try:
         try:
             check_for_requests()
             time.sleep(5)
-        except MastodonNetworkError:
+        except (MastodonGatewayTimeoutError, MastodonNetworkError):
             logger.warning("MastodonNetworkError skipping iteration")
         except MastodonNotFoundError:
             logger.warning("MastodonNotFoundError post was deleted")
