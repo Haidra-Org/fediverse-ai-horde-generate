@@ -30,7 +30,7 @@ mastodon = Mastodon(
 
 HORDE_URL = "https://stablehorde.net"
 imgen_params = {
-    "n": 1,
+    "n": 2,
     "width": 512,
     "height":512,
     "steps": 30,
@@ -58,7 +58,7 @@ def check_for_requests():
         exclude_types=["follow", "favourite", "reblog", "poll", "follow_request"]
     )
     notifications.reverse()
-    # pp.pprint(notifications)
+    pp.pprint(notifications[0])
     logger.info(f"Retrieved {len(notifications)} notifications.")
     for notification in notifications:
         incoming_status = notification["status"]
@@ -77,7 +77,8 @@ def check_for_requests():
             continue
         headers = {"apikey": os.environ['HORDE_API']}
         submit_dict = generic_submit_dict.copy()
-        submit_dict["prompt"] = reg_res.group(1)
+        prompt = reg_res.group(1)
+        submit_dict["prompt"] = prompt
         submit_dict["params"] = imgen_params
         logger.debug(f"Submitting: {submit_dict}")
         submit_req = requests.post(f'{HORDE_URL}/api/v2/generate/async', json = submit_dict, headers = headers)
@@ -108,24 +109,28 @@ def check_for_requests():
                 logger.error(f"Something went wrong when generating the request. Please contact the horde administrator with your request details: {final_submit_dict}")
                 return
             results = results_json['generations']
-            seed = None
+            seeds = []
+            filenames = []
+            media_dicts = []
             for iter in range(len(results)):
-                seed = results[iter]["seed"]
                 b64img = results[iter]["img"]
                 base64_bytes = b64img.encode('utf-8')
                 img_bytes = base64.b64decode(base64_bytes)
                 img = Image.open(BytesIO(img_bytes))
-                final_filename = "horde_generation.jpg"
+                final_filename = f"{iter}_horde_generation.jpg"
+                filenames.append(final_filename)
+                seeds.append(results[iter]["seed"])
                 img.save(final_filename)
+                media_dict = mastodon.media_post(media_file=final_filename, description=f"Image with seed {seed} generated via Stable Diffusion through @stablehorde@sigmoid.social. Prompt: {prompt}")
+                media_dicts.append(media_dict)
                 logger.info(f"Saved {final_filename}")
         else:
             logger.error(submit_req.text)
         logger.info(f"replying to {request_id}: {reply_content} - {tags}")
-        media_dict = mastodon.media_post(media_file="horde_generation.jpg", description="Image request generated via Stable Diffusion through @stablehorde@sigmoid.social")
         tags_string = ''
         for t in tags:
             tags_string += f" #{t}"
-        mastodon.status_reply(to_status=incoming_status, status=f"Here is an image matching your prompt with seed {seed}\n\n#aiart #stablediffusion #stablehorde{tags_string}", media_ids=media_dict)
+        mastodon.status_reply(to_status=incoming_status, status=f"Here are some images matching your prompt\n\n#aiart #stablediffusion #stablehorde{tags_string}", media_ids=media_dicts)
         # mastodon.status_reply(to_status=incoming_status, status="Here is your generation", media_ids=media_dict)
         if request_id > last_parsed_notification:
             db_r.set("last_parsed_id",request_id)
