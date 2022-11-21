@@ -1,6 +1,6 @@
 import requests, json, os, time, argparse, base64
 from mastodon import Mastodon
-from mastodon.Mastodon import MastodonNetworkError, MastodonNotFoundError, MastodonGatewayTimeoutError
+from mastodon.Mastodon import MastodonNetworkError, MastodonNotFoundError, MastodonGatewayTimeoutError, MastodonBadGatewayError
 from bot import args, logger, get_bot_db, is_redis_up, set_logger_verbosity, quiesce_logger
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
