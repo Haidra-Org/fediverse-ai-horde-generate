@@ -1,6 +1,6 @@
 import requests, json, os, time, argparse, base64
 from mastodon import Mastodon
-from mastodon.Mastodon import MastodonNetworkError
+from mastodon.Mastodon import MastodonNetworkError, MastodonNotFoundError
 from bot import args, logger, get_bot_db, is_redis_up, set_logger_verbosity, quiesce_logger
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
@@ -146,5 +146,7 @@ try:
             time.sleep(5)
         except MastodonNetworkError:
             logger.warning("MastodonNetworkError skipping iteration")
+        except MastodonNotFoundError:
+            logger.warning("MastodonNotFoundError post was deleted")
 except KeyboardInterrupt:
     logger.init_ok("Mastodon Stable Horde Bot", status="Exited")
