@@ -1,0 +1,4 @@
+requests
+mastodon.py
+redis
+bs4
