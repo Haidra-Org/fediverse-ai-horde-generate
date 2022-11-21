@@ -58,7 +58,7 @@ def check_for_requests():
         exclude_types=["follow", "favourite", "reblog", "poll", "follow_request"]
     )
     notifications.reverse()
-    pp.pprint(notifications[0])
+    # pp.pprint(notifications[0])
     logger.info(f"Retrieved {len(notifications)} notifications.")
     for notification in notifications:
         incoming_status = notification["status"]
