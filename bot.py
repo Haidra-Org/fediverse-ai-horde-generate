@@ -57,23 +57,26 @@ def check_for_requests():
         # min_id=last_parsed_notification,  # doesn't work atm https://github.com/halcy/Mastodon.py/issues/270
         exclude_types=["follow", "favourite", "reblog", "poll", "follow_request"]
     )
+    db_r.set("last_parsed_id",notifications[0]["id"])
+    return
     notifications.reverse()
     # pp.pprint(notifications[0])
     logger.info(f"Retrieved {len(notifications)} notifications.")
     for notification in notifications:
         incoming_status = notification["status"]
+        notification_id = notification["id"]
         request_id = incoming_status["id"]
         tags = [tag.name for tag in incoming_status["tags"]]
         reply_content = BeautifulSoup(incoming_status["content"],features="html.parser").get_text()
-        # logger.debug([request_id, last_parsed_notification, request_id < last_parsed_notification])
+        # logger.debug([notification_id, last_parsed_notification, notification_id < last_parsed_notification])
         reg_res = term_regex.search(reply_content)
-        if request_id <= last_parsed_notification:
-            logger.debug(f"skipping {request_id} < {last_parsed_notification}")
+        if notification_id <= last_parsed_notification:
+            logger.debug(f"skipping {notification_id} < {last_parsed_notification}")
             continue
         if not reg_res:
             logger.info(f"{request_id} is not a generation request, skipping")
-            if request_id > last_parsed_notification:
-                db_r.set("last_parsed_id",request_id)
+            if notification_id > last_parsed_notification:
+                db_r.set("last_parsed_id",notification_id)
             continue
         headers = {"apikey": os.environ['HORDE_API']}
         submit_dict = generic_submit_dict.copy()
@@ -135,7 +138,7 @@ def check_for_requests():
                 logger.info(f"Saved {final_filename}")
         else:
             logger.error(submit_req.text)
-        logger.info(f"replying to {request_id}: {reply_content} - {tags}")
+        logger.info(f"replying to {request_id}: {reply_content}")
         tags_string = ''
         for t in tags:
             tags_string += f" #{t}"
@@ -148,8 +151,8 @@ def check_for_requests():
                     raise e
                 logger.warning(f"Network error when replying. Retry {iter+1}/3")
         # mastodon.status_reply(to_status=incoming_status, status="Here is your generation", media_ids=media_dict)
-        if request_id > last_parsed_notification:
-            db_r.set("last_parsed_id",request_id)
+        if notification_id > last_parsed_notification:
+            db_r.set("last_parsed_id",notification_id)
 
 
 
