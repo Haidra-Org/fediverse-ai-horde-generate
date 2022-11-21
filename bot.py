@@ -119,7 +119,8 @@ def check_for_requests():
                 img = Image.open(BytesIO(img_bytes))
                 final_filename = f"{iter}_horde_generation.jpg"
                 filenames.append(final_filename)
-                seeds.append(results[iter]["seed"])
+                seed = results[iter]["seed"]
+                seeds.append(seed)
                 img.save(final_filename)
                 media_dict = mastodon.media_post(media_file=final_filename, description=f"Image with seed {seed} generated via Stable Diffusion through @stablehorde@sigmoid.social. Prompt: {prompt}")
                 media_dicts.append(media_dict)
