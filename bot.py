@@ -132,7 +132,7 @@ def check_for_requests():
                         logger.warning(f"Network error when uploading files. Retry {iter+1}/3")
                 media_dict = mastodon.media_post(media_file=final_filename, description=f"Image with seed {seed} generated via Stable Diffusion through @stablehorde@sigmoid.social. Prompt: {prompt}")
                 media_dicts.append(media_dict)
-                logger.info(f"Saved {final_filename}")
+                logger.info(f"Uploaded {final_filename}")
         else:
             logger.error(submit_req.text)
         logger.info(f"replying to {request_id}: {reply_content}")
