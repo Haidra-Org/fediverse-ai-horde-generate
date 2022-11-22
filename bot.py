@@ -1,7 +1,7 @@
 import requests, json, os, time, argparse, base64, random, re, pprint
 from mastodon import Mastodon
 from mastodon.Mastodon import MastodonNetworkError, MastodonNotFoundError, MastodonGatewayTimeoutError, MastodonBadGatewayError, MastodonAPIError
-from bot import args, logger, db_r, set_logger_verbosity, quiesce_logger
+from bot import args, logger, db_r, set_logger_verbosity, quiesce_logger, StreamListener
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from PIL import Image, ImageFont, ImageDraw, ImageFilter, ImageOps
@@ -217,6 +217,8 @@ def parse_style(reply_content):
     return(style_array)
 
 logger.init("Mastodon Stable Horde Bot", status="Starting")
+listener = StreamListener()
+Mastodon.stream_user(listener)
 try:
     while True:
         try:
