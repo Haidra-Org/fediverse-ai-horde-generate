@@ -184,6 +184,7 @@ def get_styles():
 
 def parse_style(reply_content):
     '''retrieves the styles requested and returns a list of unformated style prompts and the models to use'''
+    global style_regex
     styles = get_styles()
     style_array = []
     default_style = {
