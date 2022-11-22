@@ -1,5 +1,5 @@
 import requests, json, os, time, argparse, base64, random, re, pprint
-from mastodon import Mastodon
+from mastodon.Mastodon import StreamListener
 from . import args, logger, db_r
 
 
@@ -24,7 +24,7 @@ generic_submit_dict = {
 pp = pprint.PrettyPrinter(depth=3)
 
 
-class StreamListener(Mastodon.StreamListener):
+class StreamListener(StreamListener):
     
     def on_notification(self,notification):
         incoming_status = notification["status"]
