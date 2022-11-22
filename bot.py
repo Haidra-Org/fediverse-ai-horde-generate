@@ -217,8 +217,9 @@ def parse_style(reply_content):
     return(style_array)
 
 logger.init("Mastodon Stable Horde Bot", status="Starting")
-listener = StreamListener()
-Mastodon.stream_user(listener)
+with logger.catch(reraise=True):
+    listener = StreamListener()
+    Mastodon.stream_user(listener)
 try:
     while True:
         try:
