@@ -185,6 +185,7 @@ def get_styles():
 def parse_style(reply_content):
     '''retrieves the styles requested and returns a list of unformated style prompts and the models to use'''
     styles = get_styles()
+    style_array = []
     default_style = {
             "prompt": "{p}",
             "model": "stable_diffusion"
