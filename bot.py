@@ -1,6 +1,7 @@
 import os
 import threading
 from mastodon import Mastodon
+from mastodon.Mastodon import MastodonNetworkError, MastodonNotFoundError, MastodonGatewayTimeoutError, MastodonBadGatewayError, MastodonAPIError
 from bot import args, logger, db_r, set_logger_verbosity, quiesce_logger, handle_mention, handle_dm
 from dotenv import load_dotenv
 
