@@ -30,7 +30,7 @@ prompt_only_regex = re.compile(r'draw for me (.+)style:', re.IGNORECASE)
 style_regex = re.compile(r'style: ?(\w+)', re.IGNORECASE)
 
 
-def handle_mention(self, notification):
+def handle_mention(notification):
     db_r.setex(str(notification_id), timedelta(days=30), 1)
     return
     # pp.pprint(notification)
@@ -102,7 +102,7 @@ def handle_mention(self, notification):
     # mastodon.status_reply(to_status=incoming_status, status="Here is your generation", media_ids=media_dict)
     db_r.setex(str(notification_id), timedelta(days=30), 1)
 
-def handle_dm(self, notification):
+def handle_dm(notification):
     pp.pprint(notification)
     # db_r.setex(str(notification_id), timedelta(days=30), 1)
 
