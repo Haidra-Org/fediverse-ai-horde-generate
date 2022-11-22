@@ -7,8 +7,8 @@ from .listener import StreamListener
 db_r = None
 logger.init("Database", status="Connecting")
 if is_redis_up():
-	db_r = get_bot_db()
-	logger.init_ok("Database", status="Connected")
+    db_r = get_bot_db()
+    logger.init_ok("Database", status="Connected")
 else:
-	logger.init_err("Database", status="Failed")
+    logger.init_err("Database", status="Failed")
     raise Exception("No redis DB found")
