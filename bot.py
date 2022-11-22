@@ -23,7 +23,7 @@ else:
 	logger.init_err("Database", status="Failed")
 
 pp = pprint.PrettyPrinter(depth=3)
-term_regex = re.compile(r'draw for me (.+?)(style:)?', re.IGNORECASE)
+term_regex = re.compile(r'draw for me (.+)(style:|$)?', re.IGNORECASE)
 style_regex = re.compile(r'style: ?(\w+)', re.IGNORECASE)
 
 mastodon = Mastodon(
