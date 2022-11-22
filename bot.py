@@ -88,6 +88,7 @@ def check_for_requests():
         submit_dict["params"] = imgen_params
         submit_dict["models"] = [model]
         logger.debug(f"Submitting: {submit_dict}")
+        continue
         submit_req = requests.post(f'{HORDE_URL}/api/v2/generate/async', json = submit_dict, headers = headers)
         if submit_req.ok:
             submit_results = submit_req.json()
