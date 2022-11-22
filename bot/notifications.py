@@ -160,6 +160,7 @@ def parse_style(reply_content):
     if sr:
         requested_style = sr.group(1)
         if requested_style == "raw":
+            style_array = []
             for iter in range(4):
                 style_array.append(styles[requested_style])
         else:
@@ -170,6 +171,7 @@ def parse_style(reply_content):
                         random_key = random.choice(list(styles[category].keys()))
                         style_array.append(styles[category].pop(random_key))
                 if requested_style in styles[category] or requested_style.lower() in styles[category] or requested_style.capitalize() in styles[category]:
+                    style_array = []
                     for iter in range(4):
                         style_array.append(styles[category][requested_style])
     logger.debug(style_array)
