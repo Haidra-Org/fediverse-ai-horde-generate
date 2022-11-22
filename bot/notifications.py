@@ -27,7 +27,7 @@ pp = pprint.PrettyPrinter(depth=3)
 term_regex = re.compile(r'draw for me (.+)', re.IGNORECASE)
 modifier_seek_regex = re.compile(r'style:', re.IGNORECASE)
 prompt_only_regex = re.compile(r'draw for me (.+)style:', re.IGNORECASE)
-style_regex = re.compile(r'style: ?(\w+)', re.IGNORECASE)
+style_regex = re.compile(r'style: ?([\w ]+)', re.IGNORECASE)
 
 class MentionHandler:
 
@@ -161,7 +161,7 @@ def parse_style(reply_content):
         requested_style = sr.group(1)
         if requested_style == "raw":
             for iter in range(4):
-                style_array = [styles[requested_style]]
+                style_array.append(styles[requested_style])
         else:
             for category in styles:
                 if requested_style == category:
@@ -169,8 +169,8 @@ def parse_style(reply_content):
                     for iter in range(4):
                         random_key = random.choice(list(styles[category].keys()))
                         style_array.append(styles[category].pop(random_key))
-                if requested_style in styles[category]:
+                if requested_style in styles[category] or requested_style.lower() in styles[category] or requested_style.capitalize() in styles[category]:
                     for iter in range(4):
-                        style_array = [styles[category][requested_style]]
+                        style_array.append(styles[category][requested_style])
     logger.debug(style_array)
     return(style_array, requested_style)
