@@ -72,7 +72,6 @@ class StreamListener(StreamListener):
             por = prompt_only_regex.search(reply_content)
             unformated_prompt = por.group(1)
         submit_list = []
-        logger.debug(styles_array)
         for style in styles_array:
             prompt = style["prompt"].format(p=unformated_prompt)
             model = style["model"]
@@ -85,12 +84,12 @@ class StreamListener(StreamListener):
         while not gen.all_gens_done():
             time.sleep(1)
         media_dicts = []
-        for filename in gen.get_all_filenames():
+        for job in gen.get_all_done_jobs():
             for iter in range(4):
                 try:
                     media_dict = self.mastodon.media_post(
-                        media_file=filename, 
-                        description=f"Image with seed {seed} generated via Stable Diffusion through @stablehorde@sigmoid.social. Prompt: {unformated_prompt}"
+                        media_file=job.filename, 
+                        description=f"Image with seed {job.seed} generated via Stable Diffusion through @stablehorde@sigmoid.social. Prompt: {unformated_prompt}"
                     )
                     break
                 except (MastodonGatewayTimeoutError, MastodonNetworkError, MastodonBadGatewayError) as e:
@@ -101,7 +100,7 @@ class StreamListener(StreamListener):
                         raise e
                     logger.warning(f"Network error when uploading files. Retry {iter+1}/3")
             media_dicts.append(media_dict)
-            logger.debug(f"Uploaded {final_filename}")
+            logger.debug(f"Uploaded {job.filename}")
         logger.info(f"replying to {request_id}: {reply_content}")
         tags_string = ''
         for t in tags:
@@ -166,11 +165,10 @@ def parse_style(reply_content):
         else:
             for category in styles:
                 if requested_style == category:
-                    # TODO: For now I do all of them in a random style. Later I will switch it to a random style per image
-                    random_key = random.choice(list(styles[category].keys()))
+                    style_array = []
                     for iter in range(4):
-                        style_array = [styles[category][random_key]]
-                        # style_array = [styles[category].pop(key)] # for the TODO
+                        random_key = random.choice(list(styles[category].keys()))
+                        style_array.append(styles[category].pop(random_key))
                 if requested_style in styles[category]:
                     for iter in range(4):
                         style_array = [styles[category][requested_style]]
