@@ -30,14 +30,15 @@ prompt_only_regex = re.compile(r'draw for me (.+)style:', re.IGNORECASE)
 style_regex = re.compile(r'style: ?(\w+)', re.IGNORECASE)
 
 
+@logger.catch(reraise=True)
 def handle_mention(notification):
-    db_r.setex(str(notification_id), timedelta(days=30), 1)
-    return
     # pp.pprint(notification)
     incoming_status = notification["status"]
     notification_id = notification["id"]
     request_id = incoming_status["id"]
     tags = [tag.name for tag in incoming_status["tags"]]
+    db_r.setex(str(notification_id), timedelta(days=30), 1)
+    return
     reply_content = BeautifulSoup(incoming_status["content"],features="html.parser").get_text()
     # logger.debug([notification_id, last_parsed_notification, notification_id < last_parsed_notification])
     reg_res = term_regex.search(reply_content)
@@ -102,9 +103,11 @@ def handle_mention(notification):
     # mastodon.status_reply(to_status=incoming_status, status="Here is your generation", media_ids=media_dict)
     db_r.setex(str(notification_id), timedelta(days=30), 1)
 
+@logger.catch(reraise=True)
 def handle_dm(notification):
     pp.pprint(notification)
     # db_r.setex(str(notification_id), timedelta(days=30), 1)
+
 
 def get_styles():
     # styles = db_r.get("styles")
