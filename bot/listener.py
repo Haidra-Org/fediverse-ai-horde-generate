@@ -52,8 +52,8 @@ class StreamListener(StreamListener):
         #     continue
         if not reg_res:
             logger.info(f"{request_id} is not a generation request, skipping")
-            if notification_id > last_parsed_notification:
-                db_r.set("last_parsed_id",notification_id)
+            # if notification_id > last_parsed_notification:
+            #     db_r.set("last_parsed_id",notification_id)
             return
         styles_array = parse_style(reply_content)
         # For now we're only have the same styles on each element. Later we might be able to have multiple ones.
@@ -147,8 +147,8 @@ class StreamListener(StreamListener):
                     raise e
                 logger.warning(f"Network error when replying. Retry {iter+1}/3")
         # mastodon.status_reply(to_status=incoming_status, status="Here is your generation", media_ids=media_dict)
-        if notification_id > last_parsed_notification:
-            db_r.set("last_parsed_id",notification_id)
+        # if notification_id > last_parsed_notification:
+        #     db_r.set("last_parsed_id",notification_id)
 
 def get_styles():
     # styles = db_r.get("styles")
