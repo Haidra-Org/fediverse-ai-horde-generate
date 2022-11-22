@@ -171,17 +171,17 @@ def get_styles():
     logger.info([styles, type(styles)])
     logger.debug("Downloading styles")
     for iter in range(5):
-        # try:
-        r = requests.get("https://raw.githubusercontent.com/db0/Stable-Horde-Styles/main/styles.json")
-        styles = r.json()
-        ip_r.setex("styles", timedelta(minutes=30), styles)
-        break
-        # except Exception:
-        #     if iter >= 3: 
-        #         styles = {"raw": "{p}"}
-        #         break
-        #     logger.warning(f"Error during style download. Retrying ({iter+1}/3)")
-        #     time.sleep(1)
+        try:
+            r = requests.get("https://raw.githubusercontent.com/db0/Stable-Horde-Styles/main/styles.json")
+            styles = r.json()
+            db_r.setex("styles", timedelta(minutes=30), styles)
+            break
+        except Exception:
+            if iter >= 3: 
+                styles = {"raw": "{p}"}
+                break
+            logger.warning(f"Error during style download. Retrying ({iter+1}/3)")
+            time.sleep(1)
     return(styles)
 
 
