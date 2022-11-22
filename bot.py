@@ -211,7 +211,7 @@ def parse_style(reply_content):
                     # TODO: For now I do all of them in a random style. Later I will switch it to a random style per image
                     random_key = random.choice(list(styles[category].keys()))
                     for iter in range(4):
-                        style_array = [styles[category][key]]
+                        style_array = [styles[category][random_key]]
                         # style_array = [styles[category].pop(key)] # for the TODO
                 if requested_style in styles[category]:
                     for iter in range(4):
