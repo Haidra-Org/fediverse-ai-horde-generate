@@ -23,7 +23,9 @@ else:
 	logger.init_err("Database", status="Failed")
 
 pp = pprint.PrettyPrinter(depth=3)
-term_regex = re.compile(r'draw for me (.+)(style:|$)?', re.IGNORECASE)
+term_regex = re.compile(r'draw for me (.+)', re.IGNORECASE)
+modifier_seek_regex = re.compile(r'style:', re.IGNORECASE)
+prompt_only_regex = re.compile(r'draw for me (.+)style:', re.IGNORECASE)
 style_regex = re.compile(r'style: ?(\w+)', re.IGNORECASE)
 
 mastodon = Mastodon(
@@ -80,7 +82,11 @@ def check_for_requests():
             continue
         styles_array = parse_style(reply_content)
         # For now we're only have the same styles on each element. Later we might be able to have multiple ones.
-        prompt = styles_array[0]["prompt"].format(p=reg_res.group(1))
+        unformated_prompt = reg_res.group(1)
+        if modifier_seek_regex.search(unformated_prompt):
+            prompt_only_regex.search(reply_content)
+            unformated_prompt = prompt_only_regex.group(1)
+        prompt = styles_array[0]["prompt"].format(p=unformated_prompt)
         model = styles_array[0]["model"]
         headers = {"apikey": os.environ['HORDE_API']}
         submit_dict = generic_submit_dict.copy()
