@@ -1,7 +1,7 @@
 import os
 import threading
 from mastodon import Mastodon
-from bot import args, logger, handle_mention, handle_dm
+from bot import args, logger, set_logger_verbosity, quiesce_logger, handle_mention, handle_dm
 from dotenv import load_dotenv
 
 
