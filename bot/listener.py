@@ -79,8 +79,7 @@ class StreamListener(StreamListener):
             submit_dict["prompt"] = prompt
             submit_dict["params"] = imgen_params
             submit_dict["models"] = [model]
-            logger.debug(submit_dict)
-            submit_list.append(submit_list)
+            submit_list.append(submit_dict)
         gen = HordeMultiGen(submit_list, notification_id)
         while not gen.all_gens_done():
             time.sleep(1)
