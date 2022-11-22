@@ -3,13 +3,10 @@ import threading
 from mastodon.Mastodon import MastodonNetworkError, MastodonNotFoundError, MastodonGatewayTimeoutError, MastodonBadGatewayError, MastodonAPIError
 from mastodon import StreamListener
 from bs4 import BeautifulSoup
-from PIL import Image, ImageFont, ImageDraw, ImageFilter, ImageOps
-from io import BytesIO
 from datetime import timedelta
-from . import args, logger, db_r
+from . import args, logger, db_r, HordeMultiGen
 
 
-HORDE_URL = "https://stablehorde.net"
 imgen_params = {
     "n": 4,
     "width": 512,
@@ -74,78 +71,36 @@ class StreamListener(StreamListener):
         if modifier_seek_regex.search(unformated_prompt):
             por = prompt_only_regex.search(reply_content)
             unformated_prompt = por.group(1)
-        prompt = styles_array[0]["prompt"].format(p=unformated_prompt)
-        model = styles_array[0]["model"]
-        headers = {"apikey": os.environ['HORDE_API']}
-        submit_dict = generic_submit_dict.copy()
-        submit_dict["prompt"] = prompt
-        submit_dict["params"] = imgen_params
-        submit_dict["models"] = [model]
-        logger.debug(f"Submitting: {submit_dict}")
-        submit_req = requests.post(f'{HORDE_URL}/api/v2/generate/async', json = submit_dict, headers = headers)
-        filenames = []
+        submit_list = []
+        for style in styles_array:
+            prompt = style["prompt"].format(p=unformated_prompt)
+            model = style["model"]
+            submit_dict = generic_submit_dict.copy()
+            submit_dict["prompt"] = prompt
+            submit_dict["params"] = imgen_params
+            submit_dict["models"] = [model]
+            submit_list.append(submit_list)
+        gen = HordeMultiGen(submit_list, notification_id)
+        while not gen.all_gens_done():
+            time.sleep(1)
         media_dicts = []
-        if submit_req.ok:
-            submit_results = submit_req.json()
-            # logger.debug(submit_results)
-            req_id = submit_results['id']
-            is_done = False
-            while not is_done:
-                chk_req = requests.get(f'{HORDE_URL}/api/v2/generate/check/{req_id}')
-                if not chk_req.ok:
-                    logger.error(chk_req.text)
-                    return
-                chk_results = chk_req.json()
-                logger.debug(chk_results)
-                is_done = chk_results['done']
-                time.sleep(0.8)
-            retrieve_req = requests.get(f'{HORDE_URL}/api/v2/generate/status/{req_id}')
-            if not retrieve_req.ok:
-                logger.error(retrieve_req.text)
-                return
-            results_json = retrieve_req.json()
-            # logger.debug(results_json)
-            if results_json['faulted']:
-                final_submit_dict = request_data.get_submit_dict()
-                if "source_image" in final_submit_dict:
-                    final_submit_dict["source_image"] = f"img2img request with size: {len(final_submit_dict['source_image'])}"
-                logger.error(f"Something went wrong when generating the request. Please contact the horde administrator with your request details: {final_submit_dict}")
-                return
-            results = results_json['generations']
-            seeds = []
-            for iter in range(len(results)):
-                b64img = results[iter]["img"]
-                base64_bytes = b64img.encode('utf-8')
-                img_bytes = base64.b64decode(base64_bytes)
-                img = Image.open(BytesIO(img_bytes))
-                final_filename = f"{notification_id}_{iter}_horde_generation.jpg"
-                filenames.append(final_filename)
-                seed = results[iter]["seed"]
-                seeds.append(seed)
-                img.save(final_filename)
-                logger.debug(final_filename)
-                for iter in range(4):
-                    try:
-                        media_dict = self.mastodon.media_post(
-                            media_file=final_filename, 
-                            description=f"Image with seed {seed} generated via Stable Diffusion through @stablehorde@sigmoid.social. Prompt: {prompt}"
-                        )
-                        break
-                    except (MastodonGatewayTimeoutError, MastodonNetworkError, MastodonBadGatewayError) as e:
-                        if iter >= 3:
-                            # Delete images on crash
-                            for fn in filenames:
-                                os.remove(fn)
-                            raise e
-                        logger.warning(f"Network error when uploading files. Retry {iter+1}/3")
-                media_dict = self.mastodon.media_post(
-                    media_file=final_filename, 
-                    description=f"Image with seed {seed} generated via Stable Diffusion through @stablehorde@sigmoid.social. Prompt: {prompt}"
-                )
-                media_dicts.append(media_dict)
-                logger.info(f"Uploaded {final_filename}")
-        else:
-            logger.error(submit_req.text)
+        for filename in gen.get_all_filenames():
+            for iter in range(4):
+                try:
+                    media_dict = self.mastodon.media_post(
+                        media_file=filename, 
+                        description=f"Image with seed {seed} generated via Stable Diffusion through @stablehorde@sigmoid.social. Prompt: {unformated_prompt}"
+                    )
+                    break
+                except (MastodonGatewayTimeoutError, MastodonNetworkError, MastodonBadGatewayError) as e:
+                    if iter >= 3:
+                        # Delete images on crash
+                        for fn in gen.get_all_filenames():
+                            os.remove(fn)
+                        raise e
+                    logger.warning(f"Network error when uploading files. Retry {iter+1}/3")
+            media_dicts.append(media_dict)
+            logger.debug(f"Uploaded {final_filename}")
         logger.info(f"replying to {request_id}: {reply_content}")
         tags_string = ''
         for t in tags:
@@ -163,7 +118,7 @@ class StreamListener(StreamListener):
                 if iter >= 3:
                     raise e
                 logger.warning(f"Network error when replying. Retry {iter+1}/3")
-        for fn in filenames:
+        for fn in gen.get_all_filenames():
             os.remove(fn)
         # mastodon.status_reply(to_status=incoming_status, status="Here is your generation", media_ids=media_dict)
         # if notification_id > last_parsed_notification:
