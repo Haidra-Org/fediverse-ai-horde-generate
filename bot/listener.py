@@ -24,11 +24,11 @@ generic_submit_dict = {
 pp = pprint.PrettyPrinter(depth=3)
 
 
-# class StreamListener(StreamListener):
+class StreamListener(StreamListener):
     
-#     def on_notification(self,notification):
-#         incoming_status = notification["status"]
-#         notification_id = notification["id"]
-#         request_id = incoming_status["id"]
-#         tags = [tag.name for tag in incoming_status["tags"]]
-#         pp.pprint(notification)
+    def on_notification(self,notification):
+        incoming_status = notification["status"]
+        notification_id = notification["id"]
+        request_id = incoming_status["id"]
+        tags = [tag.name for tag in incoming_status["tags"]]
+        pp.pprint(notification)
