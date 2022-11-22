@@ -1,7 +1,7 @@
-import requests, json, os, time, argparse, base64, random
+import requests, json, os, time, argparse, base64, random, re, pprint
 from mastodon import Mastodon
 from mastodon.Mastodon import MastodonNetworkError, MastodonNotFoundError, MastodonGatewayTimeoutError, MastodonBadGatewayError, MastodonAPIError
-from bot import args, logger, get_bot_db, is_redis_up, set_logger_verbosity, quiesce_logger
+from bot import args, logger, db_r, set_logger_verbosity, quiesce_logger
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from PIL import Image, ImageFont, ImageDraw, ImageFilter, ImageOps
@@ -12,17 +12,8 @@ from datetime import timedelta
 load_dotenv()
 set_logger_verbosity(args.verbosity)
 quiesce_logger(args.quiet)
-import pprint, re
-
-db_r = None
-logger.init("Database", status="Connecting")
-if is_redis_up():
-	db_r = get_bot_db()
-	logger.init_ok("Database", status="Connected")
-else:
-	logger.init_err("Database", status="Failed")
-
 pp = pprint.PrettyPrinter(depth=3)
+
 term_regex = re.compile(r'draw for me (.+)', re.IGNORECASE)
 modifier_seek_regex = re.compile(r'style:', re.IGNORECASE)
 prompt_only_regex = re.compile(r'draw for me (.+)style:', re.IGNORECASE)
@@ -177,8 +168,8 @@ def check_for_requests():
             db_r.set("last_parsed_id",notification_id)
 
 def get_styles():
-    styles = db_r.get("styles")
-    logger.info([styles, type(styles)])
+    # styles = db_r.get("styles")
+    # logger.info([styles, type(styles)])
     logger.debug("Downloading styles")
     for iter in range(5):
         try:
@@ -187,7 +178,6 @@ def get_styles():
             # db_r.setex("styles", timedelta(minutes=30), styles)
             break
         except Exception as e:
-            raise e
             if iter >= 3: 
                 styles = {"raw": "{p}"}
                 break
