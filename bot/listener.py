@@ -35,6 +35,12 @@ style_regex = re.compile(r'style: ?(\w+)', re.IGNORECASE)
 
 class StreamListener(StreamListener):
     
+
+    def __init__(self,mastodon):
+        super().__init__()
+        self.mastodon = mastodon
+
+
     def on_notification(self,notification):
             self.handle_mention(notification)
     
