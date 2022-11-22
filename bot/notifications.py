@@ -165,7 +165,7 @@ def parse_style(reply_content):
                 style_array.append(styles[requested_style])
         else:
             for category in styles:
-                if requested_style == category:
+                if requested_style.lower() == category.lower():
                     style_array = []
                     for iter in range(4):
                         random_key = random.choice(list(styles[category].keys()))
