@@ -1,4 +1,4 @@
-import requests, json, os, time, argparse, base64
+import requests, json, os, time, argparse, base64, random
 from mastodon import Mastodon
 from mastodon.Mastodon import MastodonNetworkError, MastodonNotFoundError, MastodonGatewayTimeoutError, MastodonBadGatewayError, MastodonAPIError
 from bot import args, logger, get_bot_db, is_redis_up, set_logger_verbosity, quiesce_logger
@@ -51,7 +51,6 @@ generic_submit_dict = {
 
 @logger.catch(reraise=True)
 def check_for_requests():
-    styles = get_styles()
     last_parsed_notification = db_r.get("last_parsed_id")
     if last_parsed_notification != None:
         last_parsed_notification = int(last_parsed_notification)
@@ -79,12 +78,10 @@ def check_for_requests():
             if notification_id > last_parsed_notification:
                 db_r.set("last_parsed_id",notification_id)
             continue
-        style = "raw"
-        style_regex = style_regex.search(reply_content)
-        if style_regex:
-            style = style_regex.group(1)
-        prompt = styles[style]["prompt"].format(p=reg_res.group(1))
-        model = styles[style]["model"]
+        styles_array = parse_style(reply_content)
+        # For now we're only have the same styles on each element. Later we might be able to have multiple ones.
+        prompt = styles_array[0]["prompt"].format(p=reg_res.group(1))
+        model = styles_array[0]["model"]
         headers = {"apikey": os.environ['HORDE_API']}
         submit_dict = generic_submit_dict.copy()
         submit_dict["prompt"] = prompt
@@ -185,6 +182,34 @@ def get_styles():
             time.sleep(1)
     return(styles)
 
+def parse_style(reply_content):
+    '''retrieves the styles requested and returns a list of unformated style prompts and the models to use'''
+    styles = get_styles()
+    default_style = {
+            "prompt": "{p}",
+            "model": "stable_diffusion"
+        }
+    for iter in range(4):
+        style_array.append(default_style)
+    style_regex = style_regex.search(reply_content)
+    if style_regex:
+        requested_style = style_regex.group(1)
+        if requested_style == "raw":
+            for iter in range(4):
+                style_array = [styles[requested_style]]
+        else:
+            for caregory in styles:
+                if requested_style == category:
+                    # TODO: For now I do all of them in a random style. Later I will switch it to a random style per image
+                    random_key = random.choice(list(styles[category].keys()))
+                    for iter in range(4):
+                        style_array = [styles[category][key]]
+                        # style_array = [styles[category].pop(key)] # for the TODO
+                if requested_style in styles[category]:
+                    for iter in range(4):
+                        style_array = [styles[requested_style]]
+    logger.debug(style_array)
+    return(style_array)
 
 logger.init("Mastodon Stable Horde Bot", status="Starting")
 try:
