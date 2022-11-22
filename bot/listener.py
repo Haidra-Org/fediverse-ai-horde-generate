@@ -43,12 +43,15 @@ class StreamListener(StreamListener):
 
 
     def on_notification(self,notification):
+        if "visibility" in notification["status"] and notification["status"]["visibility"] == "direct":
+            thread = threading.Thread(target=self.handle_dm, args=(notification,))
+        else:
             thread = threading.Thread(target=self.handle_mention, args=(notification,))
-            thread.daemon = True
-            thread.start()
+        thread.daemon = True
+        thread.start()
     
     def handle_mention(self, notification):
-        pp.pprint(notification)
+        # pp.pprint(notification)
         incoming_status = notification["status"]
         notification_id = notification["id"]
         request_id = incoming_status["id"]
@@ -162,6 +165,9 @@ class StreamListener(StreamListener):
         # mastodon.status_reply(to_status=incoming_status, status="Here is your generation", media_ids=media_dict)
         # if notification_id > last_parsed_notification:
         #     db_r.set("last_parsed_id",notification_id)
+
+    def handle_dm(self, notification):
+        pp.pprint(notification)
 
 def get_styles():
     # styles = db_r.get("styles")

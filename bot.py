@@ -219,7 +219,7 @@ def parse_style(reply_content):
 logger.init("Mastodon Stable Horde Bot", status="Starting")
 with logger.catch(reraise=True):
     listener = StreamListener(mastodon)
-    mastodon.stream_user(listener=listener)
+    mastodon.stream_user(listener=listener, run_async=True, reconnect_async=True)
 try:
     while True:
         try:
