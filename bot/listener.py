@@ -43,12 +43,13 @@ class StreamListener(StreamListener):
 
     @logger.catch(reraise=True)
     def on_notification(self,notification):
-        if "visibility" in notification["status"] and notification["status"]["visibility"] == "direct":
-            thread = threading.Thread(target=self.handle_dm, args=(notification,))
-        else:
-            thread = threading.Thread(target=self.handle_mention, args=(notification,))
-        thread.daemon = True
-        thread.start()
+        if notification["type"] == "mention":
+            if "visibility" in notification["status"] and notification["status"]["visibility"] == "direct":
+                thread = threading.Thread(target=self.handle_dm, args=(notification,))
+            else:
+                thread = threading.Thread(target=self.handle_mention, args=(notification,))
+            thread.daemon = True
+            thread.start()
     
     def handle_mention(self, notification):
         # pp.pprint(notification)
