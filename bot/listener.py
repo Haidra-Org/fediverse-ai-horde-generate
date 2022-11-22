@@ -118,7 +118,7 @@ class StreamListener(StreamListener):
                 img.save(final_filename)
                 for iter in range(4):
                     try:
-                        media_dict = mastodon.media_post(
+                        media_dict = self.mastodon.media_post(
                             media_file=final_filename, 
                             description=f"Image with seed {seed} generated via Stable Diffusion through @stablehorde@sigmoid.social. Prompt: {prompt}"
                         )
@@ -127,7 +127,7 @@ class StreamListener(StreamListener):
                         if iter >= 3:
                             raise e
                         logger.warning(f"Network error when uploading files. Retry {iter+1}/3")
-                media_dict = mastodon.media_post(
+                media_dict = self.mastodon.media_post(
                     media_file=final_filename, 
                     description=f"Image with seed {seed} generated via Stable Diffusion through @stablehorde@sigmoid.social. Prompt: {prompt}"
                 )
@@ -141,7 +141,7 @@ class StreamListener(StreamListener):
             tags_string += f" #{t}"
         for iter in range(4):
             try:
-                mastodon.status_reply(
+                self.mastodon.status_reply(
                     to_status=incoming_status,
                     status=f"Here are some images matching your prompt\n\n#aiart #stablediffusion #stablehorde{tags_string}", 
                     media_ids=media_dicts,
