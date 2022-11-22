@@ -57,6 +57,7 @@ class MentionHandler:
         reg_res = term_regex.search(reply_content)
         if not reg_res:
             logger.info(f"{request_id} is not a generation request, skipping")
+            db_r.setex(str(notification_id), timedelta(days=30), 1)
             return
         styles_array, requested_style = parse_style(reply_content)
         # For now we're only have the same styles on each element. Later we might be able to have multiple ones.
