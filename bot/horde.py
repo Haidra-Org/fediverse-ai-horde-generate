@@ -14,6 +14,7 @@ class HordeMultiGen:
         self.status = JobStatus.INIT
         self.jobs = []
         iter = 0
+        logger.debug(submit_dicts)
         for submit_dict in self.submit_dicts:
             job_unique_id = str(iter) + '_' + str(self.unique_id)
             self.jobs.append(HordeGenerate(submit_dict, job_unique_id, True))
