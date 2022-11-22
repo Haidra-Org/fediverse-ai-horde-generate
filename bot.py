@@ -176,12 +176,12 @@ def get_styles():
             styles = r.json()
             ip_r.setex("styles", timedelta(minutes=30), styles)
             break
-        except Exception:
-            if iter >= 3: 
-                styles = {"raw": "{p}"}
-                break
-            logger.warning(f"Error during style download. Retrying ({iter+1}/3)")
-            time.sleep(1)
+        # except Exception:
+        #     if iter >= 3: 
+        #         styles = {"raw": "{p}"}
+        #         break
+        #     logger.warning(f"Error during style download. Retrying ({iter+1}/3)")
+        #     time.sleep(1)
     return(styles)
 
 
