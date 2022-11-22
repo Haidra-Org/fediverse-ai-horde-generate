@@ -1,5 +1,5 @@
 import requests, json, os, time, argparse, base64, random, re, pprint
-from mastodon.Mastodon import StreamListener
+from mastodon import StreamListener
 from . import args, logger, db_r
 
 
