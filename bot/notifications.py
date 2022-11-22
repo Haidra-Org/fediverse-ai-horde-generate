@@ -37,8 +37,6 @@ def handle_mention(notification):
     notification_id = notification["id"]
     request_id = incoming_status["id"]
     tags = [tag.name for tag in incoming_status["tags"]]
-    db_r.setex(str(notification_id), timedelta(days=30), 1)
-    return
     reply_content = BeautifulSoup(incoming_status["content"],features="html.parser").get_text()
     # logger.debug([notification_id, last_parsed_notification, notification_id < last_parsed_notification])
     reg_res = term_regex.search(reply_content)
