@@ -1,5 +1,10 @@
 import requests, json, os, time, argparse, base64, random, re, pprint
+from mastodon.Mastodon import MastodonNetworkError, MastodonNotFoundError, MastodonGatewayTimeoutError, MastodonBadGatewayError, MastodonAPIError
 from mastodon import StreamListener
+from bs4 import BeautifulSoup
+from PIL import Image, ImageFont, ImageDraw, ImageFilter, ImageOps
+from io import BytesIO
+from datetime import timedelta
 from . import args, logger, db_r
 
 
