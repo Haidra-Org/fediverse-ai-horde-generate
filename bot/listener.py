@@ -8,7 +8,7 @@ from . import args, logger, db_r, HordeMultiGen
 
 
 imgen_params = {
-    "n": 4,
+    "n": 1,
     "width": 512,
     "height":512,
     "steps": 35,
@@ -72,6 +72,7 @@ class StreamListener(StreamListener):
             por = prompt_only_regex.search(reply_content)
             unformated_prompt = por.group(1)
         submit_list = []
+        logger.debug(styles_array)
         for style in styles_array:
             prompt = style["prompt"].format(p=unformated_prompt)
             model = style["model"]
