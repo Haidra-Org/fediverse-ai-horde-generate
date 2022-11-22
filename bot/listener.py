@@ -81,7 +81,7 @@ class StreamListener(StreamListener):
         submit_req = requests.post(f'{HORDE_URL}/api/v2/generate/async', json = submit_dict, headers = headers)
         if submit_req.ok:
             submit_results = submit_req.json()
-            logger.debug(submit_results)
+            # logger.debug(submit_results)
             req_id = submit_results['id']
             is_done = False
             while not is_done:
@@ -90,7 +90,7 @@ class StreamListener(StreamListener):
                     logger.error(chk_req.text)
                     return
                 chk_results = chk_req.json()
-                logger.info(chk_results)
+                logger.debug(chk_results)
                 is_done = chk_results['done']
                 time.sleep(0.8)
             retrieve_req = requests.get(f'{HORDE_URL}/api/v2/generate/status/{req_id}')
@@ -114,7 +114,7 @@ class StreamListener(StreamListener):
                 base64_bytes = b64img.encode('utf-8')
                 img_bytes = base64.b64decode(base64_bytes)
                 img = Image.open(BytesIO(img_bytes))
-                final_filename = f"{iter}_horde_generation.jpg"
+                final_filename = f"{notification_id}_{iter}_horde_generation.jpg"
                 filenames.append(final_filename)
                 seed = results[iter]["seed"]
                 seeds.append(seed)
@@ -125,9 +125,13 @@ class StreamListener(StreamListener):
                             media_file=final_filename, 
                             description=f"Image with seed {seed} generated via Stable Diffusion through @stablehorde@sigmoid.social. Prompt: {prompt}"
                         )
+                        os.remove(final_filename) 
                         break
                     except (MastodonGatewayTimeoutError, MastodonNetworkError, MastodonBadGatewayError) as e:
                         if iter >= 3:
+                            # Delete images on crash
+                            for fn in filenames:
+                                os.remove(fn)
                             raise e
                         logger.warning(f"Network error when uploading files. Retry {iter+1}/3")
                 media_dict = self.mastodon.media_post(

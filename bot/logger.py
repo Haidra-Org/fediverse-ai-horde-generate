@@ -105,3 +105,4 @@ logger.warning("disabled")
 logger.enable("")
 logger.enable(None)
 
+logger.add("logs/bot.log", retention="1 days", level=10)
