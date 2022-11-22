@@ -174,7 +174,7 @@ def get_styles():
         try:
             r = requests.get("https://raw.githubusercontent.com/db0/Stable-Horde-Styles/main/styles.json")
             styles = r.json()
-            db_r.setex("styles", timedelta(minutes=30), styles)
+            # db_r.setex("styles", timedelta(minutes=30), styles)
             break
         except Exception as e:
             raise e
