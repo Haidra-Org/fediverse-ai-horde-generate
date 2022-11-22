@@ -84,9 +84,9 @@ def check_for_requests():
         # For now we're only have the same styles on each element. Later we might be able to have multiple ones.
         unformated_prompt = reg_res.group(1)
         if modifier_seek_regex.search(unformated_prompt):
-            prompt_only_regex.search(reply_content)
-            logger.debug([prompt_only_regex,reply_content])
-            unformated_prompt = prompt_only_regex.group(1)
+            por = prompt_only_regex.search(reply_content)
+            logger.debug([por,reply_content])
+            unformated_prompt = por.group(1)
         prompt = styles_array[0]["prompt"].format(p=unformated_prompt)
         model = styles_array[0]["model"]
         headers = {"apikey": os.environ['HORDE_API']}
