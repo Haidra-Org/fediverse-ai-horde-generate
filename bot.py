@@ -209,7 +209,7 @@ def parse_style(reply_content):
                         # style_array = [styles[category].pop(key)] # for the TODO
                 if requested_style in styles[category]:
                     for iter in range(4):
-                        style_array = [styles[requested_style]]
+                        style_array = [styles[category][requested_style]]
     logger.debug(style_array)
     return(style_array)
 
