@@ -38,9 +38,10 @@ imgen_params = {
     "n": 4,
     "width": 512,
     "height":512,
-    "steps": 30,
+    "steps": 35,
     "sampler_name": "k_euler_a",
     "cfg_scale": 7.5,
+    "karras": True,
     "post_processing": ['GFPGAN'],
 }
 generic_submit_dict = {
@@ -137,13 +138,19 @@ def check_for_requests():
                 img.save(final_filename)
                 for iter in range(4):
                     try:
-                        media_dict = mastodon.media_post(media_file=final_filename, description=f"Image with seed {seed} generated via Stable Diffusion through @stablehorde@sigmoid.social. Prompt: {prompt}")
+                        media_dict = mastodon.media_post(
+                            media_file=final_filename, 
+                            description=f"Image with seed {seed} generated via Stable Diffusion through @stablehorde@sigmoid.social. Prompt: {prompt}"
+                        )
                         break
                     except (MastodonGatewayTimeoutError, MastodonNetworkError, MastodonBadGatewayError) as e:
                         if iter >= 3:
                             raise e
                         logger.warning(f"Network error when uploading files. Retry {iter+1}/3")
-                media_dict = mastodon.media_post(media_file=final_filename, description=f"Image with seed {seed} generated via Stable Diffusion through @stablehorde@sigmoid.social. Prompt: {prompt}")
+                media_dict = mastodon.media_post(
+                    media_file=final_filename, 
+                    description=f"Image with seed {seed} generated via Stable Diffusion through @stablehorde@sigmoid.social. Prompt: {prompt}"
+                )
                 media_dicts.append(media_dict)
                 logger.info(f"Uploaded {final_filename}")
         else:
