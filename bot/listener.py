@@ -1,4 +1,5 @@
 import requests, json, os, time, argparse, base64, random, re, pprint
+import threading
 from mastodon.Mastodon import MastodonNetworkError, MastodonNotFoundError, MastodonGatewayTimeoutError, MastodonBadGatewayError, MastodonAPIError
 from mastodon import StreamListener
 from bs4 import BeautifulSoup
@@ -42,7 +43,9 @@ class StreamListener(StreamListener):
 
 
     def on_notification(self,notification):
-            self.handle_mention(notification)
+            thread = threading.Thread(target=self.handle_mention, args=(notification,))
+            thread.daemon = True
+            thread.start()
     
     def handle_mention(self, notification):
         pp.pprint(notification)
