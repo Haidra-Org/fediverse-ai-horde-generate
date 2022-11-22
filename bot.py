@@ -34,7 +34,7 @@ try:
     check_for_requests()
     while True:
         try:
-            listener = StreamListener(mastodon)
+            listener = StreamListener()
             mastodon.stream_user(listener=listener)
             time.sleep(1)
         except (MastodonGatewayTimeoutError, MastodonNetworkError, MastodonBadGatewayError, MastodonAPIError):
