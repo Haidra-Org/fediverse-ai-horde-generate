@@ -3,7 +3,6 @@ from .logger import logger, set_logger_verbosity, quiesce_logger
 from .redisctrl import get_bot_db, is_redis_up
 from .enums import JobStatus
 from .horde import HordeGenerate, HordeMultiGen
-from .notifications import handle_mention, handle_dm
 
 db_r = None
 logger.init("Database", status="Connecting")
@@ -14,5 +13,6 @@ else:
     logger.init_err("Database", status="Failed")
     raise Exception("No redis DB found")
 
+from .notifications import handle_mention, handle_dm
 from .listener import StreamListener
     
