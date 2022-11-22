@@ -41,7 +41,7 @@ class StreamListener(StreamListener):
         super().__init__()
         self.mastodon = mastodon
 
-
+    @logger.catch(reraise=True)
     def on_notification(self,notification):
         if "visibility" in notification["status"] and notification["status"]["visibility"] == "direct":
             thread = threading.Thread(target=self.handle_dm, args=(notification,))

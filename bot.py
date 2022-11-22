@@ -217,17 +217,13 @@ def parse_style(reply_content):
     return(style_array)
 
 logger.init("Mastodon Stable Horde Bot", status="Starting")
-with logger.catch(reraise=True):
-    listener = StreamListener(mastodon)
-    mastodon.stream_user(listener=listener, run_async=True, reconnect_async=True)
-# try:
-#     while True:
-#         try:
-#             check_for_requests()
-#             time.sleep(5)
-#         except (MastodonGatewayTimeoutError, MastodonNetworkError, MastodonBadGatewayError, MastodonAPIError):
-#             logger.warning("MastodonNetworkError skipping iteration")
-#         except MastodonNotFoundError:
-#             logger.warning("MastodonNotFoundError post was deleted")
-# except KeyboardInterrupt:
-#     logger.init_ok("Mastodon Stable Horde Bot", status="Exited")
+try:
+    while True:
+        try:
+            listener = StreamListener(mastodon)
+            mastodon.stream_user(listener=listener)
+            time.sleep(1)
+        except (MastodonGatewayTimeoutError, MastodonNetworkError, MastodonBadGatewayError, MastodonAPIError):
+            logger.warning("MastodonNetworkError reopening connection")
+except KeyboardInterrupt:
+    logger.init_ok("Mastodon Stable Horde Bot", status="Exited")
