@@ -6,6 +6,8 @@ from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from PIL import Image, ImageFont, ImageDraw, ImageFilter, ImageOps
 from io import BytesIO
+from datetime import timedelta
+
 
 load_dotenv()
 set_logger_verbosity(args.verbosity)
@@ -21,7 +23,8 @@ else:
 	logger.init_err("Database", status="Failed")
 
 pp = pprint.PrettyPrinter(depth=3)
-term_regex = re.compile(r'draw for me (.*)', re.IGNORECASE)
+term_regex = re.compile(r'draw for me (.+)(style:)?', re.IGNORECASE)
+style_regex = re.compile(r'style: ?(\w+)', re.IGNORECASE)
 
 mastodon = Mastodon(
     access_token = 'pytooter_usercred.secret',
@@ -48,6 +51,7 @@ generic_submit_dict = {
 
 @logger.catch(reraise=True)
 def check_for_requests():
+    styles = get_styles()
     last_parsed_notification = db_r.get("last_parsed_id")
     if last_parsed_notification != None:
         last_parsed_notification = int(last_parsed_notification)
@@ -75,11 +79,17 @@ def check_for_requests():
             if notification_id > last_parsed_notification:
                 db_r.set("last_parsed_id",notification_id)
             continue
+        style = "raw"
+        style_regex = style_regex.search(reply_content)
+        if style_regex:
+            style = style_regex.group(1)
+        prompt = styles[style]["prompt"].format(p=reg_res.group(1))
+        model = styles[style]["model"]
         headers = {"apikey": os.environ['HORDE_API']}
         submit_dict = generic_submit_dict.copy()
-        prompt = reg_res.group(1)
         submit_dict["prompt"] = prompt
         submit_dict["params"] = imgen_params
+        submit_dict["models"] = [model]
         logger.debug(f"Submitting: {submit_dict}")
         submit_req = requests.post(f'{HORDE_URL}/api/v2/generate/async', json = submit_dict, headers = headers)
         if submit_req.ok:
@@ -156,6 +166,23 @@ def check_for_requests():
         if notification_id > last_parsed_notification:
             db_r.set("last_parsed_id",notification_id)
 
+def get_styles():
+    styles = db_r.get("styles")
+    logger.info([styles, type(styles)])
+    logger.debug("Downloading styles")
+    for iter in range(5):
+        try:
+            r = requests.get("https://raw.githubusercontent.com/db0/Stable-Horde-Styles/main/styles.json")
+            styles = r.json()
+            ip_r.setex("styles", timedelta(minutes=30), styles)
+            break
+        except Exception:
+            if iter >= 3: 
+                styles = {"raw": "{p}"}
+                break
+            logger.warning(f"Error during style download. Retrying ({iter+1}/3)")
+            time.sleep(1)
+    return(styles)
 
 
 logger.init("Mastodon Stable Horde Bot", status="Starting")
