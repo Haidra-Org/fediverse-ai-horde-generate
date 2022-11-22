@@ -1,5 +1,5 @@
 from mastodon import StreamListener
-from . import handle_mention, handle_dm
+from . import logger, handle_mention, handle_dm
 
 
 class StreamListener(StreamListener):
