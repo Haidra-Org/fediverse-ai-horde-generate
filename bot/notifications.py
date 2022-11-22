@@ -43,7 +43,7 @@ def handle_mention(notification):
     if not reg_res:
         logger.info(f"{request_id} is not a generation request, skipping")
         return
-    styles_array = parse_style(reply_content)
+    styles_array, requested_style = parse_style(reply_content)
     # For now we're only have the same styles on each element. Later we might be able to have multiple ones.
     unformated_prompt = reg_res.group(1)
     if modifier_seek_regex.search(unformated_prompt):
@@ -67,7 +67,7 @@ def handle_mention(notification):
             try:
                 media_dict = mastodon.media_post(
                     media_file=job.filename, 
-                    description=f"Image with seed {job.seed} generated via Stable Diffusion through @stablehorde@sigmoid.social. Prompt: {unformated_prompt}"
+                    description=f"Image with seed {job.seed} generated via Stable Diffusion through @stablehorde@sigmoid.social. Prompt: {job.prompt}"
                 )
                 break
             except (MastodonGatewayTimeoutError, MastodonNetworkError, MastodonBadGatewayError) as e:
@@ -87,7 +87,7 @@ def handle_mention(notification):
         try:
             mastodon.status_reply(
                 to_status=incoming_status,
-                status=f"Here are some images matching your prompt '{unformated_prompt}'\n\n#aiart #stablediffusion #stablehorde{tags_string}", 
+                status=f"Here are some images matching your prompt '{unformated_prompt} in style '{requested_style}'\n\n#aiart #stablediffusion #stablehorde{tags_string}", 
                 media_ids=media_dicts,
                 spoiler_text="AI Generated Images",
             )
@@ -130,6 +130,7 @@ def parse_style(reply_content):
     global style_regex
     styles = get_styles()
     style_array = []
+    requested_style = 'raw'
     default_style = {
             "prompt": "{p}",
             "model": "stable_diffusion"
@@ -153,4 +154,4 @@ def parse_style(reply_content):
                     for iter in range(4):
                         style_array = [styles[category][requested_style]]
     logger.debug(style_array)
-    return(style_array)
+    return(style_array, requested_style)
