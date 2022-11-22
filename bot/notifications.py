@@ -104,7 +104,7 @@ def handle_mention(notification):
 @logger.catch(reraise=True)
 def handle_dm(notification):
     # pp.pprint(notification)
-    db_r.setex(str(notification_id), timedelta(days=30), 1)
+    db_r.setex(str(notification['id']), timedelta(days=30), 1)
 
 
 def get_styles():
