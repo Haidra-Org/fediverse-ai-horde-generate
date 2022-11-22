@@ -1,14 +1,9 @@
 import threading
 from mastodon import StreamListener
-from . import logger, handle_mention, handle_dm
+from . import logger, handle_mention, handle_dm, mastodon
 
 
 class StreamListener(StreamListener):
-    
-
-    def __init__(self,mastodon):
-        super().__init__()
-        self.mastodon = mastodon
 
     @logger.catch(reraise=True)
     def on_notification(self,notification):

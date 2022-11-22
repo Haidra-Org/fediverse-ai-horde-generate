@@ -3,7 +3,7 @@ import threading
 from mastodon.Mastodon import MastodonNetworkError, MastodonNotFoundError, MastodonGatewayTimeoutError, MastodonBadGatewayError, MastodonAPIError
 from bs4 import BeautifulSoup
 from datetime import timedelta
-from . import args, logger, db_r, HordeMultiGen
+from . import args, logger, db_r, HordeMultiGen, mastodon
 
 
 imgen_params = {
@@ -65,7 +65,7 @@ def handle_mention(notification):
     for job in gen.get_all_done_jobs():
         for iter in range(4):
             try:
-                media_dict = self.mastodon.media_post(
+                media_dict = mastodon.media_post(
                     media_file=job.filename, 
                     description=f"Image with seed {job.seed} generated via Stable Diffusion through @stablehorde@sigmoid.social. Prompt: {unformated_prompt}"
                 )
@@ -85,7 +85,7 @@ def handle_mention(notification):
         tags_string += f" #{t}"
     for iter in range(4):
         try:
-            self.mastodon.status_reply(
+            mastodon.status_reply(
                 to_status=incoming_status,
                 status=f"Here are some images matching your prompt '{unformated_prompt}'\n\n#aiart #stablediffusion #stablehorde{tags_string}", 
                 media_ids=media_dicts,

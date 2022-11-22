@@ -1,19 +1,13 @@
 import os
 import threading
-from mastodon import Mastodon
 from mastodon.Mastodon import MastodonNetworkError, MastodonNotFoundError, MastodonGatewayTimeoutError, MastodonBadGatewayError, MastodonAPIError
-from bot import args, logger, db_r, set_logger_verbosity, quiesce_logger, handle_mention, handle_dm, StreamListener
+from bot import args, logger, db_r, set_logger_verbosity, quiesce_logger, handle_mention, handle_dm, StreamListener, mastodon
 from dotenv import load_dotenv
 
 
 load_dotenv()
 set_logger_verbosity(args.verbosity)
 quiesce_logger(args.quiet)
-
-mastodon = Mastodon(
-    access_token = 'pytooter_usercred.secret',
-    api_base_url = 'https://sigmoid.social'
-)
 
 
 @logger.catch(reraise=True)
