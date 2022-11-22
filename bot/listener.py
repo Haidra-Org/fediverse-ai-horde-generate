@@ -1,3 +1,4 @@
+import threading
 from mastodon import StreamListener
 from . import logger, handle_mention, handle_dm
 
