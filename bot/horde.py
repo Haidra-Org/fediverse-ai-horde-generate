@@ -1,7 +1,7 @@
 
 import requests, json, os, time, base64
 import threading
-from . import JobStatus
+from . import JobStatus, logger
 from PIL import Image, ImageFont, ImageDraw, ImageFilter, ImageOps
 from io import BytesIO
 
