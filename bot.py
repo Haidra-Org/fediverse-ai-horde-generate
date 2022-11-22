@@ -85,6 +85,7 @@ def check_for_requests():
         unformated_prompt = reg_res.group(1)
         if modifier_seek_regex.search(unformated_prompt):
             prompt_only_regex.search(reply_content)
+            logger.debug([prompt_only_regex,reply_content])
             unformated_prompt = prompt_only_regex.group(1)
         prompt = styles_array[0]["prompt"].format(p=unformated_prompt)
         model = styles_array[0]["model"]
