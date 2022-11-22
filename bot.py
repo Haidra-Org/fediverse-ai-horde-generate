@@ -85,7 +85,6 @@ def check_for_requests():
         unformated_prompt = reg_res.group(1)
         if modifier_seek_regex.search(unformated_prompt):
             por = prompt_only_regex.search(reply_content)
-            logger.debug([por,reply_content])
             unformated_prompt = por.group(1)
         prompt = styles_array[0]["prompt"].format(p=unformated_prompt)
         model = styles_array[0]["model"]
@@ -201,9 +200,9 @@ def parse_style(reply_content):
         }
     for iter in range(4):
         style_array.append(default_style)
-    style_regex = style_regex.search(reply_content)
-    if style_regex:
-        requested_style = style_regex.group(1)
+    sr = style_regex.search(reply_content)
+    if sr:
+        requested_style = sr.group(1)
         if requested_style == "raw":
             for iter in range(4):
                 style_array = [styles[requested_style]]
