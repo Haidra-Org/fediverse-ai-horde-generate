@@ -20,6 +20,6 @@ mastodon = Mastodon(
     api_base_url = 'https://sigmoid.social'
 )
 
-from .notifications import handle_mention, handle_dm
+from .notifications import MentionHandler
 from .listener import StreamListener
     

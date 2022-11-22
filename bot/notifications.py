@@ -3,7 +3,7 @@ import threading
 from mastodon.Mastodon import MastodonNetworkError, MastodonNotFoundError, MastodonGatewayTimeoutError, MastodonBadGatewayError, MastodonAPIError
 from bs4 import BeautifulSoup
 from datetime import timedelta
-from . import args, logger, db_r, HordeMultiGen, mastodon
+from . import args, logger, db_r, HordeMultiGen, mastodon, JobStatus
 
 
 imgen_params = {
@@ -29,82 +29,100 @@ modifier_seek_regex = re.compile(r'style:', re.IGNORECASE)
 prompt_only_regex = re.compile(r'draw for me (.+)style:', re.IGNORECASE)
 style_regex = re.compile(r'style: ?(\w+)', re.IGNORECASE)
 
+class MentionHandler:
 
-@logger.catch(reraise=True)
-def handle_mention(notification):
-    # pp.pprint(notification)
-    incoming_status = notification["status"]
-    notification_id = notification["id"]
-    request_id = incoming_status["id"]
-    tags = [tag.name for tag in incoming_status["tags"]]
-    reply_content = BeautifulSoup(incoming_status["content"],features="html.parser").get_text()
-    # logger.debug([notification_id, last_parsed_notification, notification_id < last_parsed_notification])
-    reg_res = term_regex.search(reply_content)
-    if not reg_res:
-        logger.info(f"{request_id} is not a generation request, skipping")
-        return
-    styles_array, requested_style = parse_style(reply_content)
-    # For now we're only have the same styles on each element. Later we might be able to have multiple ones.
-    unformated_prompt = reg_res.group(1)
-    if modifier_seek_regex.search(unformated_prompt):
-        por = prompt_only_regex.search(reply_content)
-        unformated_prompt = por.group(1)
-    submit_list = []
-    for style in styles_array:
-        prompt = style["prompt"].format(p=unformated_prompt)
-        model = style["model"]
-        submit_dict = generic_submit_dict.copy()
-        submit_dict["prompt"] = prompt
-        submit_dict["params"] = imgen_params
-        submit_dict["models"] = [model]
-        submit_list.append(submit_dict)
-    gen = HordeMultiGen(submit_list, notification_id)
-    while not gen.all_gens_done():
-        time.sleep(1)
-    media_dicts = []
-    for job in gen.get_all_done_jobs():
+    def __init__(self, notification):
+        self.status = JobStatus.INIT
+        self.notification = notification
+
+    def is_finished(self):
+        return self.status in [JobStatus.DONE, JobStatus.FAULTED]
+        
+    @logger.catch(reraise=True)
+    def handle_notification(self):
+        if self.notification["status"]["visibility"] == "direct":
+            self.handle_dm()
+        else:
+            self.handle_mention()
+        
+    def handle_mention(self):
+        # pp.pprint(notification)
+        self.status = JobStatus.WORKING
+        incoming_status = self.notification["status"]
+        notification_id = self.notification["id"]
+        request_id = incoming_status["id"]
+        tags = [tag.name for tag in incoming_status["tags"]]
+        reply_content = BeautifulSoup(incoming_status["content"],features="html.parser").get_text()
+        # logger.debug([notification_id, last_parsed_notification, notification_id < last_parsed_notification])
+        reg_res = term_regex.search(reply_content)
+        if not reg_res:
+            logger.info(f"{request_id} is not a generation request, skipping")
+            return
+        styles_array, requested_style = parse_style(reply_content)
+        # For now we're only have the same styles on each element. Later we might be able to have multiple ones.
+        unformated_prompt = reg_res.group(1)
+        if modifier_seek_regex.search(unformated_prompt):
+            por = prompt_only_regex.search(reply_content)
+            unformated_prompt = por.group(1)
+        logger.info(f"Starting generation from ID '{notification_id}'. Prompt: {unformated_prompt}. Style: {requested_style}")
+        submit_list = []
+        for style in styles_array:
+            prompt = style["prompt"].format(p=unformated_prompt)
+            model = style["model"]
+            submit_dict = generic_submit_dict.copy()
+            submit_dict["prompt"] = prompt
+            submit_dict["params"] = imgen_params
+            submit_dict["models"] = [model]
+            submit_list.append(submit_dict)
+        gen = HordeMultiGen(submit_list, notification_id)
+        while not gen.all_gens_done():
+            time.sleep(1)
+        media_dicts = []
+        for job in gen.get_all_done_jobs():
+            for iter in range(4):
+                try:
+                    media_dict = mastodon.media_post(
+                        media_file=job.filename, 
+                        description=f"Image with seed {job.seed} generated via Stable Diffusion through @stablehorde@sigmoid.social. Prompt: {job.prompt}"
+                    )
+                    break
+                except (MastodonGatewayTimeoutError, MastodonNetworkError, MastodonBadGatewayError) as e:
+                    if iter >= 3:
+                        # Delete images on crash
+                        for fn in gen.get_all_filenames():
+                            os.remove(fn)
+                        self.status = JobStatus.FAULTED
+                        raise e
+                    logger.warning(f"Network error when uploading files. Retry {iter+1}/3")
+            media_dicts.append(media_dict)
+            logger.debug(f"Uploaded {job.filename}")
+        logger.info(f"replying to {request_id}: {reply_content}")
+        tags_string = ''
+        for t in tags:
+            tags_string += f" #{t}"
         for iter in range(4):
             try:
-                media_dict = mastodon.media_post(
-                    media_file=job.filename, 
-                    description=f"Image with seed {job.seed} generated via Stable Diffusion through @stablehorde@sigmoid.social. Prompt: {job.prompt}"
+                mastodon.status_reply(
+                    to_status=incoming_status,
+                    status=f"Here are some images matching your request\nPrompt: {unformated_prompt}\nStyle: {requested_style}\n\n#aiart #stablediffusion #stablehorde{tags_string}", 
+                    media_ids=media_dicts,
+                    spoiler_text="AI Generated Images",
                 )
                 break
             except (MastodonGatewayTimeoutError, MastodonNetworkError, MastodonBadGatewayError) as e:
                 if iter >= 3:
-                    # Delete images on crash
-                    for fn in gen.get_all_filenames():
-                        os.remove(fn)
+                    self.status = JobStatus.FAULTED
                     raise e
-                logger.warning(f"Network error when uploading files. Retry {iter+1}/3")
-        media_dicts.append(media_dict)
-        logger.debug(f"Uploaded {job.filename}")
-    logger.info(f"replying to {request_id}: {reply_content}")
-    tags_string = ''
-    for t in tags:
-        tags_string += f" #{t}"
-    for iter in range(4):
-        try:
-            mastodon.status_reply(
-                to_status=incoming_status,
-                status=f"Here are some images matching your prompt '{unformated_prompt} in style '{requested_style}'\n\n#aiart #stablediffusion #stablehorde{tags_string}", 
-                media_ids=media_dicts,
-                spoiler_text="AI Generated Images",
-            )
-            break
-        except (MastodonGatewayTimeoutError, MastodonNetworkError, MastodonBadGatewayError) as e:
-            if iter >= 3:
-                raise e
-            logger.warning(f"Network error when replying. Retry {iter+1}/3")
-    for fn in gen.get_all_filenames():
-        os.remove(fn)
-    # mastodon.status_reply(to_status=incoming_status, status="Here is your generation", media_ids=media_dict)
-    db_r.setex(str(notification_id), timedelta(days=30), 1)
+                logger.warning(f"Network error when replying. Retry {iter+1}/3")
+        for fn in gen.get_all_filenames():
+            os.remove(fn)
+        # mastodon.status_reply(to_status=incoming_status, status="Here is your generation", media_ids=media_dict)
+        db_r.setex(str(notification_id), timedelta(days=30), 1)
+        self.status = JobStatus.DONE
 
-@logger.catch(reraise=True)
-def handle_dm(notification):
-    # pp.pprint(notification)
-    db_r.setex(str(notification['id']), timedelta(days=30), 1)
+    def handle_dm(self):
+        # pp.pprint(notification)
+        db_r.setex(str(self.notification['id']), timedelta(days=30), 1)
 
 
 def get_styles():

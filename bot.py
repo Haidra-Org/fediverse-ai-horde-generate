@@ -1,7 +1,7 @@
 import os
 import threading
 from mastodon.Mastodon import MastodonNetworkError, MastodonNotFoundError, MastodonGatewayTimeoutError, MastodonBadGatewayError, MastodonAPIError
-from bot import args, logger, db_r, set_logger_verbosity, quiesce_logger, handle_mention, handle_dm, StreamListener, mastodon
+from bot import args, logger, db_r, set_logger_verbosity, quiesce_logger, MentionHandler, StreamListener, mastodon
 from dotenv import load_dotenv
 
 
@@ -22,10 +22,8 @@ def check_for_requests():
     for notification in notifications:
         if db_r.get(notification["id"]):
             continue
-        if notification["status"]["visibility"] == "direct":
-            thread = threading.Thread(target=handle_dm, args=(notification,))
-        else:
-            thread = threading.Thread(target=handle_mention, args=(notification,))
+        notification_handler = MentionHandler(notification)
+        thread = threading.Thread(target=notification_handler.handle_notification, args=())
         thread.start()
         waiting_threads.append(thread)    
 
