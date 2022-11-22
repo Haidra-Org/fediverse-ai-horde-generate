@@ -83,6 +83,8 @@ class StreamListener(StreamListener):
         submit_dict["models"] = [model]
         logger.debug(f"Submitting: {submit_dict}")
         submit_req = requests.post(f'{HORDE_URL}/api/v2/generate/async', json = submit_dict, headers = headers)
+        filenames = []
+        media_dicts = []
         if submit_req.ok:
             submit_results = submit_req.json()
             # logger.debug(submit_results)
@@ -111,8 +113,6 @@ class StreamListener(StreamListener):
                 return
             results = results_json['generations']
             seeds = []
-            filenames = []
-            media_dicts = []
             for iter in range(len(results)):
                 b64img = results[iter]["img"]
                 base64_bytes = b64img.encode('utf-8')
@@ -130,7 +130,6 @@ class StreamListener(StreamListener):
                             media_file=final_filename, 
                             description=f"Image with seed {seed} generated via Stable Diffusion through @stablehorde@sigmoid.social. Prompt: {prompt}"
                         )
-                        os.remove(final_filename) 
                         break
                     except (MastodonGatewayTimeoutError, MastodonNetworkError, MastodonBadGatewayError) as e:
                         if iter >= 3:
@@ -164,6 +163,8 @@ class StreamListener(StreamListener):
                 if iter >= 3:
                     raise e
                 logger.warning(f"Network error when replying. Retry {iter+1}/3")
+        for fn in filenames:
+            os.remove(fn)
         # mastodon.status_reply(to_status=incoming_status, status="Here is your generation", media_ids=media_dict)
         # if notification_id > last_parsed_notification:
         #     db_r.set("last_parsed_id",notification_id)
