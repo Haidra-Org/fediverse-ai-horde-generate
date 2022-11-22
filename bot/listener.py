@@ -123,6 +123,7 @@ class StreamListener(StreamListener):
                 seed = results[iter]["seed"]
                 seeds.append(seed)
                 img.save(final_filename)
+                logger.debug(final_filename)
                 for iter in range(4):
                     try:
                         media_dict = self.mastodon.media_post(
