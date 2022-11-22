@@ -1,6 +1,6 @@
 import requests, json, os, time, argparse, base64
 from mastodon import Mastodon
-from mastodon.Mastodon import MastodonNetworkError, MastodonNotFoundError, MastodonGatewayTimeoutError, MastodonBadGatewayError
+from mastodon.Mastodon import MastodonNetworkError, MastodonNotFoundError, MastodonGatewayTimeoutError, MastodonBadGatewayError, MastodonAPIError
 from bot import args, logger, get_bot_db, is_redis_up, set_logger_verbosity, quiesce_logger
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
@@ -164,7 +164,7 @@ try:
         try:
             check_for_requests()
             time.sleep(5)
-        except (MastodonGatewayTimeoutError, MastodonNetworkError, MastodonBadGatewayError):
+        except (MastodonGatewayTimeoutError, MastodonNetworkError, MastodonBadGatewayError, MastodonAPIError):
             logger.warning("MastodonNetworkError skipping iteration")
         except MastodonNotFoundError:
             logger.warning("MastodonNotFoundError post was deleted")
