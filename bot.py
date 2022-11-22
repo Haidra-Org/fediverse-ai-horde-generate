@@ -176,7 +176,8 @@ def get_styles():
             styles = r.json()
             db_r.setex("styles", timedelta(minutes=30), styles)
             break
-        except Exception:
+        except Exception as e:
+            raise e
             if iter >= 3: 
                 styles = {"raw": "{p}"}
                 break
