@@ -11,7 +11,7 @@ imgen_params = {
     "n": 1,
     "width": 512,
     "height":512,
-    "steps": 35,
+    "steps": 45,
     "sampler_name": "k_euler_a",
     "cfg_scale": 7.5,
     "karras": True,
@@ -52,6 +52,7 @@ class MentionHandler:
         incoming_status = self.notification["status"]
         notification_id = self.notification["id"]
         request_id = incoming_status["id"]
+        logger.debug(f"Handling notification {notification_id} as a mention")
         tags = [tag.name for tag in incoming_status["tags"]]
         reply_content = BeautifulSoup(incoming_status["content"],features="html.parser").get_text()
         # logger.debug([notification_id, last_parsed_notification, notification_id < last_parsed_notification])
@@ -142,6 +143,7 @@ class MentionHandler:
 
     def handle_dm(self):
         # pp.pprint(notification)
+        logger.debug(f"Handling notification {self.notification['id']} as a DM")
         db_r.setex(str(self.notification['id']), timedelta(days=30), 1)
 
     def reply_faulted(self,message):
@@ -175,7 +177,7 @@ def get_styles():
     for download in downloads:
         for iter in range(5):
             try:
-                r = requests.get(download["url"])
+                r = requests.get(download["url"],timeout=5)
                 jsons.append(r.json())
                 break
             except Exception as e:
