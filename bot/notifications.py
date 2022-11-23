@@ -174,7 +174,7 @@ def parse_style(reply_content):
         style_array.append(default_style)
     sr = style_regex.search(reply_content)
     if sr:
-        requested_style = sr.group(1)
+        requested_style = sr.group(1).lower()
         if requested_style in styles:
             style_array = []
             for iter in range(4):
