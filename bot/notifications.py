@@ -35,13 +35,14 @@ class MentionHandler:
     def __init__(self, notification):
         self.status = JobStatus.INIT
         self.notification = notification
+        self.mention_content = BeautifulSoup(incoming_status["content"],features="html.parser").get_text()
 
     def is_finished(self):
         return self.status in [JobStatus.DONE, JobStatus.FAULTED]
         
     @logger.catch(reraise=True)
     def handle_notification(self):
-        if self.notification["status"]["visibility"] == "direct":
+        if self.notification["status"]["visibility"] == "direct" and not term_regex.search(self.mention_content):
             self.handle_dm()
         else:
             self.handle_mention()
@@ -54,22 +55,21 @@ class MentionHandler:
         request_id = incoming_status["id"]
         logger.debug(f"Handling notification {notification_id} as a mention")
         tags = [tag.name for tag in incoming_status["tags"]]
-        reply_content = BeautifulSoup(incoming_status["content"],features="html.parser").get_text()
         # logger.debug([notification_id, last_parsed_notification, notification_id < last_parsed_notification])
-        reg_res = term_regex.search(reply_content)
+        reg_res = term_regex.search(self.mention_content)
         if not reg_res:
             logger.info(f"{request_id} is not a generation request, skipping")
             db_r.setex(str(notification_id), timedelta(days=30), 1)
             self.status = JobStatus.DONE
             return
-        styles_array, requested_style = parse_style(reply_content)
+        styles_array, requested_style = parse_style(self.mention_content)
         if len(styles_array) == 0:
             self.reply_faulted("We could not discover this style in our database. Please pick one from style (https://github.com/db0/Stable-Horde-Styles/blob/main/styles.json) or categories (https://github.com/db0/Stable-Horde-Styles/blob/main/categories.json) ")
             return
         # For now we're only have the same styles on each element. Later we might be able to have multiple ones.
         unformated_prompt = reg_res.group(1)
         if modifier_seek_regex.search(unformated_prompt):
-            por = prompt_only_regex.search(reply_content)
+            por = prompt_only_regex.search(self.mention_content)
             unformated_prompt = por.group(1)
         logger.info(f"Starting generation from ID '{notification_id}'. Prompt: {unformated_prompt}. Style: {requested_style}")
         submit_list = []
@@ -109,7 +109,7 @@ class MentionHandler:
                     logger.warning(f"Network error when uploading files. Retry {iter+1}/3")
             media_dicts.append(media_dict)
             logger.debug(f"Uploaded {job.filename}")
-        logger.info(f"replying to {request_id}: {reply_content}")
+        logger.info(f"replying to {request_id}: {self.mention_content}")
         tags_string = ''
         for t in tags:
             tags_string += f" #{t}"
@@ -189,7 +189,7 @@ def get_styles():
                 time.sleep(1)
     return(jsons)
 
-def parse_style(reply_content):
+def parse_style(self.mention_content):
     '''retrieves the styles requested and returns a list of unformated style prompts and the models to use'''
     global style_regex
     jsons = get_styles()
@@ -197,7 +197,7 @@ def parse_style(reply_content):
     categories = jsons[1]
     style_array = []
     requested_style = "raw"
-    sr = style_regex.search(reply_content)
+    sr = style_regex.search(self.mention_content)
     if sr:
         requested_style = sr.group(1).lower()
     if requested_style in styles:
