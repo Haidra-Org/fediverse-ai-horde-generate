@@ -62,7 +62,7 @@ class MentionHandler:
             return
         styles_array, requested_style = parse_style(reply_content)
         if len(styles_array) == 0:
-            self.reply_faulted("Something went wrong when looking for your style. Please contact @stablehorde@sigmoid.social.")
+            self.reply_faulted("We could not discover this style in our database. Please pick one from style (https://github.com/db0/Stable-Horde-Styles/blob/main/styles.json) or categories (https://github.com/db0/Stable-Horde-Styles/blob/main/categories.json) ")
         # For now we're only have the same styles on each element. Later we might be able to have multiple ones.
         unformated_prompt = reg_res.group(1)
         if modifier_seek_regex.search(unformated_prompt):
@@ -185,23 +185,15 @@ def parse_style(reply_content):
     styles = jsons[0]
     categories = jsons[1]
     style_array = []
-    requested_style = 'raw'
-    default_style = {
-            "prompt": "{p}",
-            "model": "stable_diffusion"
-        }
-    for iter in range(4):
-        style_array.append(default_style)
+    requested_style = None
     sr = style_regex.search(reply_content)
     if sr:
         requested_style = sr.group(1).lower()
         if requested_style in styles:
-            style_array = []
             for iter in range(4):
                 style_array.append(styles[requested_style])
         elif requested_style in categories:
             category_copy = []
-            style_array = []
             for iter in range(4):
                 if len(category_copy) == 0:
                     category_copy = categories[requested_style].copy()
