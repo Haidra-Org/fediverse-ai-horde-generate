@@ -35,7 +35,12 @@ class MentionHandler:
     def __init__(self, notification):
         self.status = JobStatus.INIT
         self.notification = notification
-        self.mention_content = BeautifulSoup(incoming_status["content"],features="html.parser").get_text()
+        self.incoming_status = self.notification["status"]
+        self.notification_id = self.notification["id"]
+        self.request_id = self.incoming_status["id"]
+        self.tags = [tag.name for tag in self.incoming_status["tags"]]
+
+        self.mention_content = BeautifulSoup(self.incoming_status["content"],features="html.parser").get_text()
 
     def is_finished(self):
         return self.status in [JobStatus.DONE, JobStatus.FAULTED]
@@ -50,16 +55,12 @@ class MentionHandler:
     def handle_mention(self):
         # pp.pprint(notification)
         self.status = JobStatus.WORKING
-        incoming_status = self.notification["status"]
-        notification_id = self.notification["id"]
-        request_id = incoming_status["id"]
-        logger.debug(f"Handling notification {notification_id} as a mention")
-        tags = [tag.name for tag in incoming_status["tags"]]
-        # logger.debug([notification_id, last_parsed_notification, notification_id < last_parsed_notification])
+        logger.debug(f"Handling notification {self.notification_id} as a mention")
+        # logger.debug([self.notification_id, last_parsed_notification, self.notification_id < last_parsed_notification])
         reg_res = term_regex.search(self.mention_content)
         if not reg_res:
-            logger.info(f"{request_id} is not a generation request, skipping")
-            db_r.setex(str(notification_id), timedelta(days=30), 1)
+            logger.info(f"{self.request_id} is not a generation request, skipping")
+            db_r.setex(str(self.notification_id), timedelta(days=30), 1)
             self.status = JobStatus.DONE
             return
         styles_array, requested_style = parse_style(self.mention_content)
@@ -71,7 +72,7 @@ class MentionHandler:
         if modifier_seek_regex.search(unformated_prompt):
             por = prompt_only_regex.search(self.mention_content)
             unformated_prompt = por.group(1)
-        logger.info(f"Starting generation from ID '{notification_id}'. Prompt: {unformated_prompt}. Style: {requested_style}")
+        logger.info(f"Starting generation from ID '{self.notification_id}'. Prompt: {unformated_prompt}. Style: {requested_style}")
         submit_list = []
         for style in styles_array:
             prompt = style["prompt"].format(p=unformated_prompt)
@@ -81,7 +82,7 @@ class MentionHandler:
             submit_dict["params"] = imgen_params
             submit_dict["models"] = [model]
             submit_list.append(submit_dict)
-        gen = HordeMultiGen(submit_list, notification_id)
+        gen = HordeMultiGen(submit_list, self.notification_id)
         while not gen.all_gens_done():
             if gen.is_faulted():
                 if not gen.is_possible():
@@ -109,13 +110,13 @@ class MentionHandler:
                     logger.warning(f"Network error when uploading files. Retry {iter+1}/3")
             media_dicts.append(media_dict)
             logger.debug(f"Uploaded {job.filename}")
-        logger.info(f"replying to {request_id}: {self.mention_content}")
+        logger.info(f"replying to {self.request_id}: {self.mention_content}")
         tags_string = ''
-        for t in tags:
+        for t in self.tags:
             tags_string += f" #{t}"
         for iter in range(4):
             try:
-                visibility = incoming_status['visibility']
+                visibility = self.incoming_status['visibility']
                 if visibility == 'public':
                     if db_r.get("unlisted_post"):
                         visibility = 'unlisted'
@@ -123,7 +124,7 @@ class MentionHandler:
                         visibility = 'public'
                         db_r.setex("unlisted_post", timedelta(minutes=30), 1)
                 mastodon.status_reply(
-                    to_status=incoming_status,
+                    to_status=self.incoming_status,
                     status=f"Here are some images matching your request\nPrompt: {unformated_prompt}\nStyle: {requested_style}\n\n#aiart #stablediffusion #stablehorde{tags_string}", 
                     media_ids=media_dicts,
                     spoiler_text="AI Generated Images",
@@ -137,25 +138,23 @@ class MentionHandler:
                 logger.warning(f"Network error when replying. Retry {iter+1}/3")
         for fn in gen.get_all_filenames():
             os.remove(fn)
-        # mastodon.status_reply(to_status=incoming_status, status="Here is your generation", media_ids=media_dict)
-        db_r.setex(str(notification_id), timedelta(days=30), 1)
+        # mastodon.status_reply(to_status=self.incoming_status, status="Here is your generation", media_ids=media_dict)
+        db_r.setex(str(self.notification_id), timedelta(days=30), 1)
         self.status = JobStatus.DONE
 
     def handle_dm(self):
         # pp.pprint(notification)
-        logger.debug(f"Handling notification {self.notification['id']} as a DM")
-        db_r.setex(str(self.notification['id']), timedelta(days=30), 1)
+        logger.debug(f"Handling notification {self.notification_id} as a DM")
+        db_r.setex(str(self.notification_id), timedelta(days=30), 1)
         self.status = JobStatus.DONE
 
     def reply_faulted(self,message):
         self.status = JobStatus.FAULTED
-        incoming_status = self.notification["status"]
-        notification_id = self.notification["id"]
         mastodon.status_reply(
-            to_status=incoming_status,
+            to_status=self.incoming_status,
             status=message, 
         )
-        db_r.setex(str(notification_id), timedelta(days=30), 1)
+        db_r.setex(str(self.notification_id), timedelta(days=30), 1)
 
 
 def get_styles():
@@ -189,7 +188,7 @@ def get_styles():
                 time.sleep(1)
     return(jsons)
 
-def parse_style(self.mention_content):
+def parse_style(mention_content):
     '''retrieves the styles requested and returns a list of unformated style prompts and the models to use'''
     global style_regex
     jsons = get_styles()
@@ -197,7 +196,7 @@ def parse_style(self.mention_content):
     categories = jsons[1]
     style_array = []
     requested_style = "raw"
-    sr = style_regex.search(self.mention_content)
+    sr = style_regex.search(mention_content)
     if sr:
         requested_style = sr.group(1).lower()
     if requested_style in styles:
