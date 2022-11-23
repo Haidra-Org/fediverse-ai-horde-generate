@@ -196,12 +196,12 @@ def parse_style(reply_content):
             for iter in range(4):
                 style_array.append(styles[requested_style])
         elif requested_style in categories:
-            categories_copy = []
+            category_copy = []
             style_array = []
             for iter in range(4):
-                if len(categories_copy) == 0:
-                    categories_copy = categories.copy()
-                random_style = categories_copy.pop(random.randrange(len(categories_copy)))    
+                if len(category_copy) == 0:
+                    categories_copy = categories[requested_style].copy()
+                random_style = category_copy.pop(random.randrange(len(category_copy)))    
                 style_array.append(random_style)
     logger.debug(style_array)
     return(style_array, requested_style)
