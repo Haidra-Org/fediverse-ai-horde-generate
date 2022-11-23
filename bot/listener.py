@@ -28,9 +28,11 @@ class StreamListener(StreamListener):
             for pn in processing_notifications:
                 if pn.is_finished():
                     self.processing_notifications.remove(pn)
+                    logger.debug(f"removing {pn}")
             if len(self.queue) and len(self.processing_notifications) < self.concurrency:
                 notification_handler = self.queue.pop(0)
                 self.processing_notifications.append(notification_handler)
+                logger.debug(f"starting {notification_handler}")
                 thread = threading.Thread(target=notification_handler.handle_notification, args=())
                 thread.daemon = True
                 thread.start()

@@ -59,6 +59,7 @@ class MentionHandler:
         if not reg_res:
             logger.info(f"{request_id} is not a generation request, skipping")
             db_r.setex(str(notification_id), timedelta(days=30), 1)
+            self.status = JobStatus.DONE
             return
         styles_array, requested_style = parse_style(reply_content)
         if len(styles_array) == 0:
