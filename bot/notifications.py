@@ -145,6 +145,7 @@ class MentionHandler:
         # pp.pprint(notification)
         logger.debug(f"Handling notification {self.notification['id']} as a DM")
         db_r.setex(str(self.notification['id']), timedelta(days=30), 1)
+        self.status = JobStatus.DONE
 
     def reply_faulted(self,message):
         self.status = JobStatus.FAULTED
