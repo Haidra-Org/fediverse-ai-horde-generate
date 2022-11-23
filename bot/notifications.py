@@ -139,10 +139,12 @@ class MentionHandler:
 
     def reply_faulted(message):
         incoming_status = self.notification["status"]
+        notification_id = self.notification["id"]
         mastodon.status_reply(
             to_status=incoming_status,
             status=message, 
         )
+        db_r.setex(str(notification_id), timedelta(days=30), 1)
 
 
 def get_styles():

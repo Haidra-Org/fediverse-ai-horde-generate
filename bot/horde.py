@@ -123,7 +123,7 @@ class HordeGenerate:
             is_done = chk_results['done']
             is_faulted = chk_results['faulted']
             self.is_possible = chk_results['is_possible']
-            if is_faulted or self.is_possible:
+            if is_faulted or not self.is_possible:
                 self.status = JobStatus.FAULTED
                 return
             time.sleep(0.8)
