@@ -63,6 +63,7 @@ class MentionHandler:
         styles_array, requested_style = parse_style(reply_content)
         if len(styles_array) == 0:
             self.reply_faulted("We could not discover this style in our database. Please pick one from style (https://github.com/db0/Stable-Horde-Styles/blob/main/styles.json) or categories (https://github.com/db0/Stable-Horde-Styles/blob/main/categories.json) ")
+            return
         # For now we're only have the same styles on each element. Later we might be able to have multiple ones.
         unformated_prompt = reg_res.group(1)
         if modifier_seek_regex.search(unformated_prompt):
@@ -81,7 +82,6 @@ class MentionHandler:
         gen = HordeMultiGen(submit_list, notification_id)
         while not gen.all_gens_done():
             if gen.is_faulted():
-                self.status = JobStatus.FAULTED
                 if not gen.is_possible():
                     self.reply_faulted("It is not possible to fulfil this request using this style at the moment. Please select a different style and try again.")
                 else:
@@ -102,7 +102,6 @@ class MentionHandler:
                         # Delete images on crash
                         for fn in gen.get_all_filenames():
                             os.remove(fn)
-                        self.status = JobStatus.FAULTED
                         self.reply_faulted("Something went wrong when trying to fulfil your request. Please try again later")
                         return
                     logger.warning(f"Network error when uploading files. Retry {iter+1}/3")
@@ -123,7 +122,6 @@ class MentionHandler:
                 break
             except (MastodonGatewayTimeoutError, MastodonNetworkError, MastodonBadGatewayError) as e:
                 if iter >= 3:
-                    self.status = JobStatus.FAULTED
                     self.reply_faulted("Something went wrong when trying to fulfil your request. Please try again later")
                     return
                 logger.warning(f"Network error when replying. Retry {iter+1}/3")
@@ -138,6 +136,7 @@ class MentionHandler:
         db_r.setex(str(self.notification['id']), timedelta(days=30), 1)
 
     def reply_faulted(self,message):
+        self.status = JobStatus.FAULTED
         incoming_status = self.notification["status"]
         notification_id = self.notification["id"]
         mastodon.status_reply(
