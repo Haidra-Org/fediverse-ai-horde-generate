@@ -202,6 +202,9 @@ def parse_style(reply_content):
                 if len(category_copy) == 0:
                     category_copy = categories[requested_style].copy()
                 random_style = category_copy.pop(random.randrange(len(category_copy)))    
-                style_array.append(random_style)
+                if requested_style not in styles:
+                    logger.error(f"Category has style {random_style} which cannot be found in styles json!")
+                    continue
+                style_array.append(styles[random_style])
     logger.debug(style_array)
     return(style_array, requested_style)
