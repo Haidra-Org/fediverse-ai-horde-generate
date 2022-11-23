@@ -4,6 +4,7 @@ from mastodon.Mastodon import MastodonNetworkError, MastodonNotFoundError, Masto
 from bs4 import BeautifulSoup
 from datetime import timedelta
 from . import args, logger, db_r, HordeMultiGen, mastodon, JobStatus
+from requests.structures import CaseInsensitiveDict
 
 
 imgen_params = {
@@ -129,25 +130,40 @@ class MentionHandler:
 def get_styles():
     # styles = db_r.get("styles")
     # logger.info([styles, type(styles)])
+    downloads = [
+        # Styles
+        {
+            "url": "https://raw.githubusercontent.com/db0/Stable-Horde-Styles/main/styles.json",
+            "default": {"raw": "{p}"}
+        },
+        # Categories
+        {
+            "url": "https://raw.githubusercontent.com/db0/Stable-Horde-Styles/main/categories.json",
+            "default": {}
+        },
+    ]
     logger.debug("Downloading styles")
-    for iter in range(5):
-        try:
-            r = requests.get("https://raw.githubusercontent.com/db0/Stable-Horde-Styles/main/styles.json")
-            styles = r.json()
-            # db_r.setex("styles", timedelta(hours=2), styles)
-            break
-        except Exception as e:
-            if iter >= 3: 
-                styles = {"raw": "{p}"}
+    jsons = []
+    for download in downloads:
+        for iter in range(5):
+            try:
+                r = requests.get(download["url"])
+                jsons.append(r.json())
                 break
-            logger.warning(f"Error during style download. Retrying ({iter+1}/3)")
-            time.sleep(1)
-    return(styles)
+            except Exception as e:
+                if iter >= 3: 
+                    jsons.append(download["default"])
+                    break
+                logger.warning(f"Error during file download. Retrying ({iter+1}/3)")
+                time.sleep(1)
+    return(jsons)
 
 def parse_style(reply_content):
     '''retrieves the styles requested and returns a list of unformated style prompts and the models to use'''
     global style_regex
-    styles = get_styles()
+    jsons = get_styles()
+    styles = jsons[0]
+    categories = jsons[1]
     style_array = []
     requested_style = 'raw'
     default_style = {
@@ -159,20 +175,17 @@ def parse_style(reply_content):
     sr = style_regex.search(reply_content)
     if sr:
         requested_style = sr.group(1)
-        if requested_style == "raw":
+        if requested_style in styles:
             style_array = []
             for iter in range(4):
                 style_array.append(styles[requested_style])
-        else:
-            for category in styles:
-                if requested_style.lower() == category.lower():
-                    style_array = []
-                    for iter in range(4):
-                        random_key = random.choice(list(styles[category].keys()))
-                        style_array.append(styles[category].pop(random_key))
-                if requested_style in styles[category] or requested_style.lower() in styles[category] or requested_style.capitalize() in styles[category]:
-                    style_array = []
-                    for iter in range(4):
-                        style_array.append(styles[category][requested_style])
+        elif requested_style in categories:
+            categories_copy = {}
+            style_array = []
+            for iter in range(4):
+                if len(categories_copy) == 0:
+                    categories_copy = categories.copy()            
+                random_key = random.choice(list(categories_copy.keys()))
+                style_array.append(categories_copy.pop(random_key))
     logger.debug(style_array)
     return(style_array, requested_style)
