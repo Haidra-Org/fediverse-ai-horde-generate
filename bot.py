@@ -35,7 +35,7 @@ try:
             listener = StreamListener()
             mastodon.stream_user(listener=listener)
             time.sleep(1)
-        except (MastodonGatewayTimeoutError, MastodonNetworkError, MastodonBadGatewayError, MastodonAPIError):
+        except (MastodonGatewayTimeoutError, MastodonNetworkError, MastodonBadGatewayError, MastodonAPIError) as e:
             logger.warning(f"{e} reopening connection")
             time.sleep(10)
 except KeyboardInterrupt:
