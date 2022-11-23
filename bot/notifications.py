@@ -137,7 +137,7 @@ class MentionHandler:
         # pp.pprint(notification)
         db_r.setex(str(self.notification['id']), timedelta(days=30), 1)
 
-    def reply_faulted(message):
+    def reply_faulted(self,message):
         incoming_status = self.notification["status"]
         notification_id = self.notification["id"]
         mastodon.status_reply(
