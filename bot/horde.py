@@ -31,6 +31,20 @@ class HordeMultiGen:
             jobs.append(job)
         return(jobs)
 
+    def is_faulted(self):
+        faulted = 0
+        for job in self.jobs:
+            if job.status == JobStatus.FAULTED:
+                faulted += 1
+        return len(self.jobs) == faulted
+
+    def is_possible(self):
+        count = 0
+        for job in self.jobs:
+            if not job.is_possible:
+                count += 1
+        return len(self.jobs) != count
+
     def get_all_ongoing_jobs(self):
         jobs = []
         for job in self.jobs:
@@ -70,6 +84,7 @@ class HordeGenerate:
         self.seed = None
         self.img = None
         self.thread = None
+        self.is_possible = True
         if asynchronous:
             self.thread = threading.Thread(target=self.generate_image, args=())
             self.thread.daemon = True
@@ -106,6 +121,11 @@ class HordeGenerate:
             chk_results = chk_req.json()
             logger.debug(chk_results)
             is_done = chk_results['done']
+            is_faulted = chk_results['faulted']
+            self.is_possible = chk_results['is_possible']
+            if is_faulted or self.is_possible:
+                self.status = JobStatus.FAULTED
+                return
             time.sleep(0.8)
         try:
             retrieve_req = requests.get(f'{HORDE_URL}/api/v2/generate/status/{req_id}')

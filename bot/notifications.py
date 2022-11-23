@@ -78,6 +78,13 @@ class MentionHandler:
             submit_list.append(submit_dict)
         gen = HordeMultiGen(submit_list, notification_id)
         while not gen.all_gens_done():
+            if gen.is_faulted():
+                self.status = JobStatus.FAULTED
+                if not gen.is_possible():
+                    self.reply_faulted("It is not possible to fulfil this request using this style at the moment. Please select a different style and try again.")
+                else:
+                    self.reply_faulted("Something went wrong when trying to fulfil your request. Please try again later")
+                return
             time.sleep(1)
         media_dicts = []
         for job in gen.get_all_done_jobs():
@@ -94,7 +101,8 @@ class MentionHandler:
                         for fn in gen.get_all_filenames():
                             os.remove(fn)
                         self.status = JobStatus.FAULTED
-                        raise e
+                        self.reply_faulted("Something went wrong when trying to fulfil your request. Please try again later")
+                        return
                     logger.warning(f"Network error when uploading files. Retry {iter+1}/3")
             media_dicts.append(media_dict)
             logger.debug(f"Uploaded {job.filename}")
@@ -114,7 +122,8 @@ class MentionHandler:
             except (MastodonGatewayTimeoutError, MastodonNetworkError, MastodonBadGatewayError) as e:
                 if iter >= 3:
                     self.status = JobStatus.FAULTED
-                    raise e
+                    self.reply_faulted("Something went wrong when trying to fulfil your request. Please try again later")
+                    return
                 logger.warning(f"Network error when replying. Retry {iter+1}/3")
         for fn in gen.get_all_filenames():
             os.remove(fn)
@@ -125,6 +134,13 @@ class MentionHandler:
     def handle_dm(self):
         # pp.pprint(notification)
         db_r.setex(str(self.notification['id']), timedelta(days=30), 1)
+
+    def reply_faulted(message):
+        incoming_status = self.notification["status"]
+        mastodon.status_reply(
+            to_status=incoming_status,
+            status=message, 
+        )
 
 
 def get_styles():
