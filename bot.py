@@ -39,6 +39,7 @@ try:
             time.sleep(1)
         except (MastodonGatewayTimeoutError, MastodonNetworkError, MastodonBadGatewayError, MastodonAPIError) as e:
             logger.warning(f"{e} reopening connection")
+            listener.shutdown()
             time.sleep(10)
 except KeyboardInterrupt:
     logger.init_ok("Mastodon Stable Horde Bot", status="Exited")

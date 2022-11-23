@@ -15,15 +15,23 @@ class StreamListener(StreamListener):
         self.queue_thread = threading.Thread(target=self.process_queue, args=())
         self.queue_thread.daemon = True
         self.queue_thread.start()
+        self.stop_thread = False
 
     @logger.catch(reraise=True)
     def on_notification(self,notification):
         if notification["type"] == "mention":
             self.queue.append(MentionHandler(notification))
     
+    def shutdown(self):
+        self.stop_thread = True
+
     @logger.catch(reraise=True)
     def process_queue(self):
+        logger.init("Queue processing thread", status="Starting")
         while True:
+            if self.stop_thread:
+                logger.init_ok("Queue processing thread", status="Stopped")
+                return
             processing_notifications = self.processing_notifications.copy()
             for pn in processing_notifications:
                 if pn.is_finished():
