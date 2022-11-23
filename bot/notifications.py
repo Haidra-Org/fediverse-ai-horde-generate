@@ -114,11 +114,18 @@ class MentionHandler:
             tags_string += f" #{t}"
         for iter in range(4):
             try:
+                visibility = 'public'
+                if db_r.get("unlisted_post"):
+                    visibility = 'unlisted'
+                else:
+                    visibility = 'public'
+                    db_r.setex("unlisted_post", timedelta(minutes=30), 1)
                 mastodon.status_reply(
                     to_status=incoming_status,
                     status=f"Here are some images matching your request\nPrompt: {unformated_prompt}\nStyle: {requested_style}\n\n#aiart #stablediffusion #stablehorde{tags_string}", 
                     media_ids=media_dicts,
                     spoiler_text="AI Generated Images",
+                    visibility=visibility,
                 )
                 break
             except (MastodonGatewayTimeoutError, MastodonNetworkError, MastodonBadGatewayError) as e:

@@ -20,7 +20,7 @@ def check_for_requests():
     logger.info(f"Retrieved {len(notifications)} notifications.")
     waiting_threads = []
     for notification in notifications:
-        if db_r.get(notification["id"]):
+        if db_r.get(str(notification["id"])):
             continue
         notification_handler = MentionHandler(notification)
         thread = threading.Thread(target=notification_handler.handle_notification, args=())
