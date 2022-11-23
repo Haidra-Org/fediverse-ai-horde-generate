@@ -184,22 +184,22 @@ def parse_style(reply_content):
     styles = jsons[0]
     categories = jsons[1]
     style_array = []
-    requested_style = None
+    requested_style = "raw"
     sr = style_regex.search(reply_content)
     if sr:
         requested_style = sr.group(1).lower()
-        if requested_style in styles:
-            for iter in range(4):
-                style_array.append(styles[requested_style])
-        elif requested_style in categories:
-            category_copy = []
-            for iter in range(4):
-                if len(category_copy) == 0:
-                    category_copy = categories[requested_style].copy()
-                random_style = category_copy.pop(random.randrange(len(category_copy)))    
-                if random_style not in styles:
-                    logger.error(f"Category has style {random_style} which cannot be found in styles json:")
-                    continue
-                style_array.append(styles[random_style])
+    if requested_style in styles:
+        for iter in range(4):
+            style_array.append(styles[requested_style])
+    elif requested_style in categories:
+        category_copy = []
+        for iter in range(4):
+            if len(category_copy) == 0:
+                category_copy = categories[requested_style].copy()
+            random_style = category_copy.pop(random.randrange(len(category_copy)))    
+            if random_style not in styles:
+                logger.error(f"Category has style {random_style} which cannot be found in styles json:")
+                continue
+            style_array.append(styles[random_style])
     logger.debug(style_array)
     return(style_array, requested_style)
