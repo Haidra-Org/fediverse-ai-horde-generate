@@ -36,6 +36,7 @@ try:
             mastodon.stream_user(listener=listener)
             time.sleep(1)
         except (MastodonGatewayTimeoutError, MastodonNetworkError, MastodonBadGatewayError, MastodonAPIError):
-            logger.warning("MastodonNetworkError reopening connection")
+            logger.warning(f"{e} reopening connection")
+            time.sleep(10)
 except KeyboardInterrupt:
     logger.init_ok("Mastodon Stable Horde Bot", status="Exited")
