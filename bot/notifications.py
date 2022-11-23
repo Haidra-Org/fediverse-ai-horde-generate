@@ -61,6 +61,8 @@ class MentionHandler:
             db_r.setex(str(notification_id), timedelta(days=30), 1)
             return
         styles_array, requested_style = parse_style(reply_content)
+        if len(styles_array) == 0:
+            self.reply_faulted("Something went wrong when looking for your style. Please contact @stablehorde@sigmoid.social.")
         # For now we're only have the same styles on each element. Later we might be able to have multiple ones.
         unformated_prompt = reg_res.group(1)
         if modifier_seek_regex.search(unformated_prompt):
