@@ -198,6 +198,7 @@ def parse_style(reply_content):
         elif requested_style in categories:
             category_copy = []
             style_array = []
+            logger.debug(categories[requested_style])
             for iter in range(4):
                 if len(category_copy) == 0:
                     categories_copy = categories[requested_style].copy()
