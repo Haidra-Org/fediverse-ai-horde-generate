@@ -1,7 +1,7 @@
 import os, time
 import threading
 from mastodon.Mastodon import MastodonNetworkError, MastodonNotFoundError, MastodonGatewayTimeoutError, MastodonBadGatewayError, MastodonAPIError
-from bot import args, logger, db_r, set_logger_verbosity, quiesce_logger, MentionHandler, StreamListener, mastodon
+from bot import args, logger, db_r, set_logger_verbosity, quiesce_logger, MentionHandler, StreamListenerExtended, mastodon
 from dotenv import load_dotenv
 
 
@@ -33,7 +33,7 @@ try:
     while True:
         try:
             logger.debug(f"Starting Listener")
-            listener = StreamListener()
+            listener = StreamListenerExtended()
             logger.debug(f"Streaming User")
             mastodon.stream_user(listener=listener)
             time.sleep(1)

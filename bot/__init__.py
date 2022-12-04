@@ -21,5 +21,5 @@ mastodon = Mastodon(
 )
 
 from .notifications import MentionHandler
-from .listener import StreamListener
+from .listener import StreamListenerExtended
     

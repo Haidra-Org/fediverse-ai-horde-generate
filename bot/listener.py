@@ -4,7 +4,7 @@ from mastodon import StreamListener
 from . import logger, MentionHandler, mastodon, JobStatus
 
 
-class StreamListener(StreamListener):
+class StreamListenerExtended(StreamListener):
     
 
     def __init__(self):
