@@ -5,7 +5,7 @@ from . import logger, MentionHandler, mastodon, JobStatus
 
 
 class StreamListenerExtended(StreamListener):
-    
+    stop_thread = False
 
     def __init__(self):
         super().__init__()
@@ -15,8 +15,6 @@ class StreamListenerExtended(StreamListener):
         self.queue_thread = threading.Thread(target=self.process_queue, args=())
         self.queue_thread.daemon = True
         self.queue_thread.start()
-        self.stop_thread = False
-        logger.debug(self)
 
     @logger.catch(reraise=True)
     def on_notification(self,notification):
