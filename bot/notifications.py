@@ -100,16 +100,16 @@ class MentionHandler:
                         description=f"Image with seed {job.seed} generated via Stable Diffusion through @stablehorde@sigmoid.social. Prompt: {job.prompt}"
                     )
                     break
-                except (MastodonGatewayTimeoutError, MastodonNetworkError, MastodonBadGatewayError) as e:
+                except (MastodonGatewayTimeoutError, MastodonNetworkError, MastodonBadGatewayError, MastodonAPIError) as e:
+                    # If a file fails, we skip it
                     if iter >= 3:
-                        # Delete images on crash
-                        for fn in gen.get_all_filenames():
-                            os.remove(fn)
-                        self.reply_faulted("Something went wrong when trying to fulfil your request. Please try again later")
-                        return
-                    logger.warning(f"Network error when uploading files. Retry {iter+1}/3")
+                        continue
+                    logger.warning(f"Error '{e}' when uploading files. Retry {iter+1}/3")
             media_dicts.append(media_dict)
             logger.debug(f"Uploaded {job.filename}")
+        if len(media_dicts) == 0:
+            self.reply_faulted("Something went wrong when trying to fulfil your request. Please try again later")
+            return
         logger.info(f"replying to {self.request_id}: {self.mention_content}")
         tags_string = ''
         for t in self.tags:

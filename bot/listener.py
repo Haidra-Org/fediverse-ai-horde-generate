@@ -16,6 +16,7 @@ class StreamListenerExtended(StreamListener):
         self.queue_thread.daemon = True
         self.queue_thread.start()
         self.stop_thread = False
+        logger.debug(self)
 
     @logger.catch(reraise=True)
     def on_notification(self,notification):
