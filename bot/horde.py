@@ -147,9 +147,10 @@ class HordeGenerate:
             return
         results = results_json['generations']
         for iter in range(len(results)):
-            b64img = results[iter]["img"]
-            base64_bytes = b64img.encode('utf-8')
-            img_bytes = base64.b64decode(base64_bytes)
+            img_bytes = requests.get(results[iter]["img"]).content
+            # b64img = results[iter]["img"]
+            # base64_bytes = b64img.encode('utf-8')
+            # img_bytes = base64.b64decode(base64_bytes)
             try:
                 self.img = Image.open(BytesIO(img_bytes))
             except Exception:

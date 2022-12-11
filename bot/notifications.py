@@ -21,6 +21,7 @@ generic_submit_dict = {
     "prompt": "a horde of cute stable robots in a sprawling server room repairing a massive mainframe",
     "nsfw": False,
     "censor_nsfw": True,
+    "r2": True,
     "trusted_workers": True,
     "models": ["stable_diffusion"]
 }
