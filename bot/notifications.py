@@ -136,6 +136,10 @@ class MentionHandler:
                     self.reply_faulted("Something went wrong when trying to fulfil your request. Please try again later")
                     return
                 logger.warning(f"Network error when replying. Retry {iter+1}/3")
+            except (MastodonNotFoundError) as e:
+                self.set_faulted()
+                logger.error(f"Missing reply. Aborting!")
+                return
         for fn in gen.get_all_filenames():
             os.remove(fn)
         # mastodon.status_reply(to_status=self.incoming_status, status="Here is your generation", media_ids=media_dict)
@@ -148,14 +152,16 @@ class MentionHandler:
         db_r.setex(str(self.notification_id), timedelta(days=30), 1)
         self.status = JobStatus.DONE
 
-    def reply_faulted(self,message):
+    def set_faulted(self):
         self.status = JobStatus.FAULTED
+        db_r.setex(str(self.notification_id), timedelta(days=30), 1)
+
+    def reply_faulted(self,message):
+        self.set_faulted()
         mastodon.status_reply(
             to_status=self.incoming_status,
             status=message, 
         )
-        db_r.setex(str(self.notification_id), timedelta(days=30), 1)
-
 
 def get_styles():
     # styles = db_r.get("styles")
