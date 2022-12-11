@@ -9,11 +9,6 @@ from requests.structures import CaseInsensitiveDict
 
 imgen_params = {
     "n": 1,
-    "width": 512,
-    "height":512,
-    "steps": 45,
-    "sampler_name": "k_euler_a",
-    "cfg_scale": 7.5,
     "karras": True,
     "post_processing": ['GFPGAN'],
 }
@@ -76,12 +71,15 @@ class MentionHandler:
         logger.info(f"Starting generation from ID '{self.notification_id}'. Prompt: {unformated_prompt}. Style: {requested_style}")
         submit_list = []
         for style in styles_array:
-            prompt = style["prompt"].format(p=unformated_prompt)
-            model = style["model"]
             submit_dict = generic_submit_dict.copy()
-            submit_dict["prompt"] = prompt
-            submit_dict["params"] = imgen_params
-            submit_dict["models"] = [model]
+            submit_dict["prompt"] = style["prompt"].format(p=unformated_prompt)
+            submit_dict["params"] = imgen_params.copy()
+            submit_dict["models"] = [style["model"]]
+            submit_dict["params"]["width"] = style.get("width", 512)
+            submit_dict["params"]["height"] = style.get("height", 512)
+            submit_dict["params"]["sampler_name"] = style.get("sampler", "k_euler_a")
+            submit_dict["params"]["steps"] = style.get("steps", 45)
+            submit_dict["params"]["cfg_scale"] = style.get("cfg_scale", 7.5)
             submit_list.append(submit_dict)
         gen = HordeMultiGen(submit_list, self.notification_id)
         while not gen.all_gens_done():
