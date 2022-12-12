@@ -74,7 +74,7 @@ class MentionHandler:
         logger.info(f"Starting generation from ID '{self.notification_id}'. Prompt: {unformated_prompt}. Style: {requested_style}")
         submit_list = []
         for style in styles_array:
-            if "###" not in style["prompt"] and negprompt != '':
+            if "###" not in style["prompt"] and negprompt != '' and "###" not in negprompt:
                 negprompt = '###' + negprompt
             submit_dict = generic_submit_dict.copy()
             submit_dict["prompt"] = style["prompt"].format(p=unformated_prompt, np=negprompt)
