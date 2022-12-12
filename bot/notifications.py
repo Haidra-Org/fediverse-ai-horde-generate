@@ -65,14 +65,17 @@ class MentionHandler:
             return
         # For now we're only have the same styles on each element. Later we might be able to have multiple ones.
         unformated_prompt = reg_res.group(1)
+        negprompt = ''
         if modifier_seek_regex.search(unformated_prompt):
             por = prompt_only_regex.search(self.mention_content)
             unformated_prompt = por.group(1)
+        if "###" in unformated_prompt:
+            unformated_prompt, negprompt = unformated_prompt.split("###", 1)
         logger.info(f"Starting generation from ID '{self.notification_id}'. Prompt: {unformated_prompt}. Style: {requested_style}")
         submit_list = []
         for style in styles_array:
             submit_dict = generic_submit_dict.copy()
-            submit_dict["prompt"] = style["prompt"].format(p=unformated_prompt)
+            submit_dict["prompt"] = style["prompt"].format(p=unformated_prompt, np=negprompt)
             submit_dict["params"] = imgen_params.copy()
             submit_dict["models"] = [style["model"]]
             submit_dict["params"]["width"] = style.get("width", 512)
