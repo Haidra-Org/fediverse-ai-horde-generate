@@ -163,5 +163,5 @@ class HordeGenerate:
             self.filename = f"{self.unique_id}_{iter}_horde_generation.jpg"
             self.seed = results[iter]["seed"]
             self.img.save(self.filename)
-            # logger.debug(self.filename)        
+            logger.debug(f"Saved: {self.filename}")
         self.status = JobStatus.DONE
