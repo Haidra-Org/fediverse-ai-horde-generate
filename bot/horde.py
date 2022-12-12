@@ -1,6 +1,7 @@
 
 import requests, json, os, time, base64
 import threading
+from requests.exceptions import MissingSchema
 from . import JobStatus, logger
 from PIL import Image, ImageFont, ImageDraw, ImageFilter, ImageOps
 from io import BytesIO
@@ -147,7 +148,12 @@ class HordeGenerate:
             return
         results = results_json['generations']
         for iter in range(len(results)):
-            img_bytes = requests.get(results[iter]["img"]).content
+            try:
+                img_bytes = requests.get(results[iter]["img"]).content
+            except MissingSchema as e:
+                b64img = results[iter]["img"]
+                base64_bytes = b64img.encode('utf-8')
+                img_bytes = base64.b64decode(base64_bytes)
             try:
                 self.img = Image.open(BytesIO(img_bytes))
             except Exception:
