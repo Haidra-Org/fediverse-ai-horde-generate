@@ -130,6 +130,7 @@ class MentionHandler:
                 reply_text = f"Here are some images matching your request\nPrompt: {unformated_prompt}\nStyle: {requested_style}\n\n#aiart #stablediffusion #stablehorde{tags_string}"
                 if len(reply_text) > 500:
                     reply_text = f"Here are some images matching your request\nPrompt: {unformated_prompt[0:300]}...\nStyle: {requested_style}\n\n#aiart #stablediffusion #stablehorde{tags_string}"
+                logger.debug(len(reply_text))
                 mastodon.status_reply(
                     to_status=self.incoming_status,
                     status=reply_text, 
