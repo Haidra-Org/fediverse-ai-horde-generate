@@ -127,9 +127,12 @@ class MentionHandler:
                     else:
                         visibility = 'public'
                         db_r.setex("unlisted_post", timedelta(minutes=30), 1)
+                reply_text = f"Here are some images matching your request\nPrompt: {unformated_prompt}\nStyle: {requested_style}\n\n#aiart #stablediffusion #stablehorde{tags_string}"
+                if len(reply_text) > 500:
+                    reply_text = f"Here are some images matching your request\nPrompt: {unformated_prompt[0:300]}...\nStyle: {requested_style}\n\n#aiart #stablediffusion #stablehorde{tags_string}"
                 mastodon.status_reply(
                     to_status=self.incoming_status,
-                    status=f"Here are some images matching your request\nPrompt: {unformated_prompt}\nStyle: {requested_style}\n\n#aiart #stablediffusion #stablehorde{tags_string}", 
+                    status=reply_text, 
                     media_ids=media_dicts,
                     spoiler_text="AI Generated Images",
                     visibility=visibility,
