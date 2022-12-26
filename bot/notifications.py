@@ -129,8 +129,7 @@ class MentionHandler:
                         db_r.setex("unlisted_post", timedelta(minutes=30), 1)
                 reply_text = f"Here are some images matching your request\nPrompt: {unformated_prompt}\nStyle: {requested_style}\n\n#aiart #stablediffusion #stablehorde{tags_string}"
                 if len(reply_text) > 500:
-                    reply_text = f"Here are some images matching your request\nPrompt: {unformated_prompt[0:300]}...\nStyle: {requested_style}\n\n#aiart #stablediffusion #stablehorde{tags_string}"
-                logger.debug(len(reply_text))
+                    reply_text = f"Here are some images matching your request\nPrompt: {unformated_prompt[0:350]}...\nStyle: {requested_style}\n\n#aiart #stablediffusion #stablehorde{tags_string}"
                 mastodon.status_reply(
                     to_status=self.incoming_status,
                     status=reply_text, 
