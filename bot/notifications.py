@@ -121,17 +121,17 @@ class MentionHandler:
         for iter in range(4):
             try:
                 visibility = self.incoming_status['visibility']
-                if visibility != 'direct' and os.environ['MASTODON_INSTANCE'] == "hachyderm.io":
-                    public_spot_found = False
-                    for iter in range(5):
-                        daily_post = db_r.get(f"hachyderm_daily_post_{iter}")
-                        if not daily_post:
-                            visibility = 'public'
-                            public_spot_found = True
-                            db_r.setex(f"hachyderm_daily_post_{iter}", timedelta(hours=24), 1)
-                            break
-                    if not public_spot_found:
-                        visibility = 'direct'
+                # if visibility != 'direct' and os.environ['MASTODON_INSTANCE'] == "hachyderm.io":
+                #     public_spot_found = False
+                #     for iter in range(5):
+                #         daily_post = db_r.get(f"hachyderm_daily_post_{iter}")
+                #         if not daily_post:
+                #             visibility = 'public'
+                #             public_spot_found = True
+                #             db_r.setex(f"hachyderm_daily_post_{iter}", timedelta(hours=24), 1)
+                #             break
+                #     if not public_spot_found:
+                #         visibility = 'direct'
                 if visibility == 'public':
                     if db_r.get(f"{os.environ['MASTODON_INSTANCE']}_unlisted_post"):
                         visibility = 'unlisted'
@@ -179,7 +179,7 @@ class MentionHandler:
 
     def reply_faulted(self,message):
         self.set_faulted()
-        visibility = "public"
+        visibility = "unlisted"
         if os.environ['MASTODON_INSTANCE'] == "hachyderm.io":
             visibility = "direct"
         mastodon.status_reply(
