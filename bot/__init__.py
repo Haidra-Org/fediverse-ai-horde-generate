@@ -1,10 +1,13 @@
 import os
+from dotenv import load_dotenv
 from .argparser import args
 from .logger import logger, set_logger_verbosity, quiesce_logger
 from .redisctrl import get_bot_db, is_redis_up
 from .enums import JobStatus
 from .horde import HordeGenerate, HordeMultiGen
 from mastodon import Mastodon
+
+load_dotenv()
 
 db_r = None
 logger.init("Database", status="Connecting")
