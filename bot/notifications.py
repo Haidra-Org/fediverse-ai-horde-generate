@@ -121,7 +121,7 @@ class MentionHandler:
         for iter in range(4):
             try:
                 visibility = self.incoming_status['visibility']
-                if os.environ['MASTODON_INSTANCE'] == "hachyderm.io":
+                if visibility != 'direct' and os.environ['MASTODON_INSTANCE'] == "hachyderm.io":
                     public_spot_found = False
                     for iter in range(5):
                         daily_post = db_r.get(f"hachyderm_daily_post_{iter}")
