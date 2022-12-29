@@ -132,12 +132,15 @@ class MentionHandler:
                 #             break
                 #     if not public_spot_found:
                 #         visibility = 'direct'
+                public_minutes = 30
+                if os.environ['MASTODON_INSTANCE'] == "hachyderm.io":
+                    public_minutes = 120
                 if visibility == 'public':
                     if db_r.get(f"{os.environ['MASTODON_INSTANCE']}_unlisted_post"):
                         visibility = 'unlisted'
                     else:
                         visibility = 'public'
-                        db_r.setex(f"{os.environ['MASTODON_INSTANCE']}_unlisted_post", timedelta(minutes=30), 1)
+                        db_r.setex(f"{os.environ['MASTODON_INSTANCE']}_unlisted_post", timedelta(minutes=public_minutes), 1)
                 extra_tags = ''
                 if os.environ['MASTODON_INSTANCE'] == "hachyderm.io":
                     extra_tags = " #hachybots"
