@@ -121,13 +121,26 @@ class MentionHandler:
         for iter in range(4):
             try:
                 visibility = self.incoming_status['visibility']
+                if os.environ['MASTODON_INSTANCE'] == "hachyderm.io":
+                    public_spot_found = False
+                    for iter in range(5):
+                        daily_post = db_r.get(f"hachyderm_daily_post_{iter}")
+                        if not daily_post:
+                            visibility = 'public'
+                            public_spot_found = True
+                            db_r.setex(f"hachyderm_daily_post_{iter}", timedelta(hours=24), 1)
+                    if not public_spot_found:
+                        visibility = 'direct'
                 if visibility == 'public':
-                    if db_r.get("unlisted_post"):
+                    if db_r.get(f"{os.environ['MASTODON_INSTANCE']}_unlisted_post"):
                         visibility = 'unlisted'
                     else:
                         visibility = 'public'
-                        db_r.setex("unlisted_post", timedelta(minutes=30), 1)
-                reply_text = f"Here are some images matching your request\nPrompt: {unformated_prompt}\nStyle: {requested_style}\n\n#aiart #stablediffusion #stablehorde{tags_string}"
+                        db_r.setex(f"{os.environ['MASTODON_INSTANCE']}_unlisted_post", timedelta(minutes=30), 1)
+                extra_tags = ''
+                if os.environ['MASTODON_INSTANCE'] == "hachyderm.io":
+                    extra_tags = " #hachybots"
+                reply_text = f"Here are some images matching your request\nPrompt: {unformated_prompt}\nStyle: {requested_style}\n\n#aiart #stablediffusion #stablehorde{extra_tags}{tags_string}"
                 if len(reply_text) > 500:
                     reply_text = f"Here are some images matching your request\nPrompt: {unformated_prompt[0:350]}...\nStyle: {requested_style}\n\n#aiart #stablediffusion #stablehorde{tags_string}"
                 mastodon.status_reply(
