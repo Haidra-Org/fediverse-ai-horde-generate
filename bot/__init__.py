@@ -17,7 +17,7 @@ else:
 
 mastodon = Mastodon(
     access_token = 'pytooter_usercred.secret',
-    api_base_url = 'https://sigmoid.social'
+    api_base_url = f"https://{os.environ['MASTODON_INSTANCE']}"
 )
 
 from .notifications import MentionHandler
