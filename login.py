@@ -6,7 +6,7 @@ load_dotenv()
 
 mastodon = Mastodon(
     client_id = 'pytooter_clientcred.secret',
-    api_base_url = os.environ['https://sigmoid.social']
+    api_base_url = os.environ['MASTODON_INSTANCE']
 )
 mastodon.log_in(
     os.environ['EMAIL'],
