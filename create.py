@@ -1,4 +1,6 @@
 from mastodon import Mastodon
+from dotenv import load_dotenv
+
 load_dotenv()
 
 Mastodon.create_app(
