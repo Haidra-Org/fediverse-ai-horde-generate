@@ -129,6 +129,7 @@ class MentionHandler:
                             visibility = 'public'
                             public_spot_found = True
                             db_r.setex(f"hachyderm_daily_post_{iter}", timedelta(hours=24), 1)
+                            break
                     if not public_spot_found:
                         visibility = 'direct'
                 if visibility == 'public':
@@ -180,7 +181,8 @@ class MentionHandler:
         self.set_faulted()
         mastodon.status_reply(
             to_status=self.incoming_status,
-            status=message, 
+            status=message,
+            visibility='direct', 
         )
 
 def get_styles():
