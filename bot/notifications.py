@@ -179,10 +179,13 @@ class MentionHandler:
 
     def reply_faulted(self,message):
         self.set_faulted()
+        visibility = "public"
+        if os.environ['MASTODON_INSTANCE'] == "hachyderm.io":
+            visibility = "direct"
         mastodon.status_reply(
             to_status=self.incoming_status,
             status=message,
-            visibility='direct', 
+            visibility=visibility, 
         )
 
 def get_styles():
