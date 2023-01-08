@@ -17,6 +17,7 @@ generic_submit_dict = {
     "nsfw": False,
     "censor_nsfw": True,
     "r2": True,
+    "shared": True,
     "trusted_workers": True,
     "models": ["stable_diffusion"]
 }
