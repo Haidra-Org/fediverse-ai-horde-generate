@@ -61,6 +61,9 @@ class MentionHandler:
             self.status = JobStatus.DONE
             return
         styles_array, requested_style = parse_style(self.mention_content)
+        if styles_array is None:
+            self.reply_faulted("Unfortunately it appears all models in this category are currently not being served. Please select another cateogory")
+            return
         if len(styles_array) == 0:
             self.reply_faulted("We could not discover this style in our database. Please pick one from style (https://github.com/db0/Stable-Horde-Styles/blob/main/styles.json) or categories (https://github.com/db0/Stable-Horde-Styles/blob/main/categories.json) ")
             return
@@ -206,6 +209,11 @@ def get_styles():
             "url": "https://raw.githubusercontent.com/db0/Stable-Horde-Styles/main/categories.json",
             "default": {}
         },
+        # Horde models
+        {
+            "url": "https://stablehorde.net/api/v2/status/models",
+            "default": []
+        },
     ]
     logger.debug("Downloading styles")
     jsons = []
@@ -229,6 +237,7 @@ def parse_style(mention_content):
     jsons = get_styles()
     styles = jsons[0]
     categories = jsons[1]
+    horde_models = jsons[2]
     style_array = []
     requested_style = "raw"
     sr = style_regex.search(mention_content)
@@ -244,8 +253,20 @@ def parse_style(mention_content):
                 category_copy = categories[requested_style].copy()
             random_style = category_copy.pop(random.randrange(len(category_copy)))    
             if random_style not in styles:
-                logger.error(f"Category has style {random_style} which cannot be found in styles json:")
+                logger.error(f"Category has style {random_style} which cannot be found in styles json. Skipping.")
+                continue
+            if not get_model_worker_count(styles[random_style]["model"], horde_models):
+                logger.warning(f"Category style {random_style} has no workers available. Skipping.")
+                if not len(category_copy) and not len(style_array):
+                    logger.error(f"All styles in category {requested_style} appear to have no workers. Aborting.")
+                    return None, None
                 continue
             style_array.append(styles[random_style])
     logger.debug(style_array)
     return style_array, requested_style
+
+def get_model_worker_count(model_name, models_json):
+    for model_details in models_json:
+        if model_name == model_details["name"]:
+            return model_details["count"]
+    return 0
