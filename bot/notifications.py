@@ -10,7 +10,7 @@ from requests.structures import CaseInsensitiveDict
 imgen_params = {
     "n": 1,
     "karras": True,
-    "post_processing": ['GFPGAN'],
+    # "post_processing": ['GFPGAN'],
 }
 generic_submit_dict = {
     "prompt": "a horde of cute stable robots in a sprawling server room repairing a massive mainframe",
