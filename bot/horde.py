@@ -56,7 +56,7 @@ class HordeMultiGen:
     def get_all_ongoing_jobs(self):
         jobs = []
         for job in self.jobs:
-            if job.status in [JobStatus.FAULTED, JobStatus.DONE]:
+            if job.status in [JobStatus.FAULTED, JobStatus.DONE, JobStatus.CENSORED]:
                 continue
             jobs.append(job)
         return(jobs)
