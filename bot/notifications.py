@@ -247,7 +247,7 @@ def parse_style(mention_content):
     if sr:
         requested_style = sr.group(1).lower()
     if requested_style in styles:
-        if not get_model_worker_count(styles[requested_style], horde_models):
+        if not get_model_worker_count(styles[requested_style]["model"], horde_models):
             logger.error(f"Style '{requested_style}' appear to have no workers. Aborting.")
             return None, None
         for iter in range(4):
