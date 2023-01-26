@@ -84,6 +84,7 @@ class HordeGenerate:
 
     def __init__(self, submit_dict, unique_id, asynchronous=False):
         self.submit_dict = submit_dict
+        logger.debug(submit_dict)
         self.prompt = submit_dict["prompt"]
         self.unique_id = unique_id
         self.status = JobStatus.INIT
