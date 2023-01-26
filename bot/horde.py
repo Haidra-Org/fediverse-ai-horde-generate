@@ -127,7 +127,7 @@ class HordeGenerate:
                 self.status = JobStatus.FAULTED
                 return
             chk_results = chk_req.json()
-            logger.debug(chk_results)
+            logger.debug([self.submit_dict.get("model"), chk_results])
             is_done = chk_results['done']
             is_faulted = chk_results['faulted']
             self.is_possible = chk_results['is_possible']
