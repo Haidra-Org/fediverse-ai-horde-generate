@@ -39,6 +39,13 @@ class HordeMultiGen:
                 faulted += 1
         return len(self.jobs) == faulted
 
+    def is_censored(self):
+        censored = 0
+        for job in self.jobs:
+            if job.status == JobStatus.CENSORED:
+                censored += 1
+        return len(self.jobs) == censored
+
     def is_possible(self):
         count = 0
         for job in self.jobs:
@@ -148,6 +155,10 @@ class HordeGenerate:
             return
         results = results_json['generations']
         for iter in range(len(results)):
+            if results[iter]["censored"]:
+                logger.info("Image received censored")
+                self.status = JobStatus.CENSORED
+                return
             try:
                 img_bytes = requests.get(results[iter]["img"]).content
             except MissingSchema as e:

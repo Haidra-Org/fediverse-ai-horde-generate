@@ -98,6 +98,9 @@ class MentionHandler:
                 else:
                     self.reply_faulted("Something went wrong when trying to fulfil your request. Please try again later")
                 return
+            if gen.is_censored():
+                self.reply_faulted("Unfortunately all images from this request were censored by the automatic safety filer. Please tweak your prompt to avoid nsfw terms and try again.")
+                return
             time.sleep(1)
         media_dicts = []
         for job in gen.get_all_done_jobs():
