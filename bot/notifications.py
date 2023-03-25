@@ -153,7 +153,7 @@ class MentionHandler:
                     extra_tags = " #hachybots"
                 reply_text = f"Here are some images matching your request\nPrompt: {unformated_prompt}\nStyle: {requested_style}\n\n#aiart #stablediffusion #stablehorde{extra_tags}{tags_string}"
                 if len(reply_text) > 500:
-                    reply_text = f"Here are some images matching your request\nPrompt: {unformated_prompt[0:350]}...\nStyle: {requested_style}\n\n#aiart #stablediffusion #stablehorde{tags_string}"
+                    reply_text = f"Here are some images matching your request\nPrompt: {unformated_prompt[0:300]}...\nStyle: {requested_style}\n\n#aiart #stablediffusion #stablehorde{tags_string}"
                 mastodon.status_reply(
                     to_status=self.incoming_status,
                     status=reply_text, 
