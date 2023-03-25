@@ -2,7 +2,8 @@
 import requests, json, os, time, base64
 import threading
 from requests.exceptions import MissingSchema
-from . import JobStatus, logger
+from bot.logger import logger
+from bot.enums import JobStatus
 from PIL import Image, ImageFont, ImageDraw, ImageFilter, ImageOps
 from io import BytesIO
 
@@ -84,7 +85,6 @@ class HordeGenerate:
 
     def __init__(self, submit_dict, unique_id, asynchronous=False):
         self.submit_dict = submit_dict
-        logger.debug(submit_dict)
         self.prompt = submit_dict["prompt"]
         self.unique_id = unique_id
         self.status = JobStatus.INIT
@@ -103,6 +103,7 @@ class HordeGenerate:
             
 
     def generate_image(self):
+        logger.debug(f"Submitting: {self.submit_dict}")
         self.status = JobStatus.WORKING
         try:
             submit_req = requests.post(f'{HORDE_URL}/api/v2/generate/async', json = self.submit_dict, headers = self.headers)
@@ -116,7 +117,9 @@ class HordeGenerate:
         # logger.debug(submit_results)
         req_id = submit_results['id']
         is_done = False
+        retry = 0
         while not is_done:
+            retry += 1
             try:
                 chk_req = requests.get(f'{HORDE_URL}/api/v2/generate/check/{req_id}')
             except Exception:
@@ -125,6 +128,11 @@ class HordeGenerate:
             if not chk_req.ok:
                 logger.error(chk_req.text)
                 self.status = JobStatus.FAULTED
+                return
+            if retry >= 300: 
+                logger.error("Image failed to return in a reasonable amount of time. Aborting")
+                self.status = JobStatus.FAULTED
+                self.is_possible = False
                 return
             chk_results = chk_req.json()
             logger.debug([self.submit_dict.get("models"), chk_results])
