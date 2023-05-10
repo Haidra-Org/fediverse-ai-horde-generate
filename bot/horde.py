@@ -7,7 +7,7 @@ from bot.enums import JobStatus
 from PIL import Image, ImageFont, ImageDraw, ImageFilter, ImageOps
 from io import BytesIO
 
-HORDE_URL = "https://stablehorde.net"
+HORDE_URL = "https://aihorde.net"
 
 class HordeMultiGen:
     def __init__(self, submit_dicts, unique_id):

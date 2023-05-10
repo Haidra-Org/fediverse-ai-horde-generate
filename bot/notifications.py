@@ -151,9 +151,9 @@ class MentionHandler:
                 extra_tags = ''
                 if os.environ['MASTODON_INSTANCE'] == "hachyderm.io":
                     extra_tags = " #hachybots"
-                reply_text = f"Here are some images matching your request\nPrompt: {unformated_prompt}\nStyle: {requested_style}\n\n#aiart #stablediffusion #stablehorde{extra_tags}{tags_string}"
+                reply_text = f"Here are some images matching your request\nPrompt: {unformated_prompt}\nStyle: {requested_style}\n\n#aiart #stablediffusion #aihorde{extra_tags}{tags_string}"
                 if len(reply_text) > 500:
-                    reply_text = f"Here are some images matching your request\nPrompt: {unformated_prompt[0:300]}...\nStyle: {requested_style}\n\n#aiart #stablediffusion #stablehorde{tags_string}"
+                    reply_text = f"Here are some images matching your request\nPrompt: {unformated_prompt[0:300]}...\nStyle: {requested_style}\n\n#aiart #stablediffusion #aihorde{tags_string}"
                 mastodon.status_reply(
                     to_status=self.incoming_status,
                     status=reply_text, 
@@ -214,7 +214,7 @@ def get_styles():
         },
         # Horde models
         {
-            "url": "https://stablehorde.net/api/v2/status/models",
+            "url": "https://aihorde.net/api/v2/status/models",
             "default": []
         },
     ]
