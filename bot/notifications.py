@@ -256,7 +256,10 @@ def parse_style(mention_content):
             style_array.append(styles[requested_style])
     elif requested_style in categories:
         category_styles = expand_category(categories,requested_style)
+        category_styles_running = category_styles.copy()
         for iter in range(4):
+            if len(category_styles_running) == 0:
+                category_styles_running = category_styles.copy()
             random_style = category_styles.pop(random.randrange(len(category_styles)))    
             if random_style not in styles:
                 logger.error(f"Category has style {random_style} which cannot be found in styles json. Skipping.")
@@ -273,11 +276,8 @@ def parse_style(mention_content):
 
 def expand_category(categories, category_name):
     styles = []
-    logger.debug(category_name, categories[category_name])
     for item in categories[category_name]:
-        logger.debug([item in categories, categories])
         if item in categories:
-            logger.debug(item,expand_category(categories,item))
             styles += expand_category(categories,item)
         else:
             styles.append(item)
