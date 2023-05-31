@@ -273,7 +273,9 @@ def parse_style(mention_content):
 
 def expand_category(categories, category_name):
     styles = []
+    logger.debuf(category_name, categories[category_name])
     for item in categories[category_name]:
+        logger.debug(item in categories, categories)
         if item in categories:
             logger.debug(item,expand_category(categories,item))
             styles += expand_category(categories,item)
