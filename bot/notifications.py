@@ -89,6 +89,8 @@ class MentionHandler:
             submit_dict["params"]["sampler_name"] = style.get("sampler", "k_euler_a")
             submit_dict["params"]["steps"] = style.get("steps", 45)
             submit_dict["params"]["cfg_scale"] = style.get("cfg_scale", 7.5)
+            if "loras" in style:
+                submit_dict["params"]["loras"] = style["loras"]
             submit_list.append(submit_dict)
         gen = HordeMultiGen(submit_list, self.notification_id)
         while not gen.all_gens_done():
@@ -253,23 +255,31 @@ def parse_style(mention_content):
         for iter in range(4):
             style_array.append(styles[requested_style])
     elif requested_style in categories:
-        category_copy = []
+        category_styles = expand_category(categories,requested_style)
         for iter in range(4):
-            if len(category_copy) == 0:
-                category_copy = categories[requested_style].copy()
-            random_style = category_copy.pop(random.randrange(len(category_copy)))    
+            random_style = category_styles.pop(random.randrange(len(category_styles)))    
             if random_style not in styles:
                 logger.error(f"Category has style {random_style} which cannot be found in styles json. Skipping.")
                 continue
             if not get_model_worker_count(styles[random_style]["model"], horde_models):
                 logger.warning(f"Category style {random_style} has no workers available. Skipping.")
-                if not len(category_copy) and not len(style_array):
+                if not len(category_styles) and not len(style_array):
                     logger.error(f"All styles in category {requested_style} appear to have no workers. Aborting.")
                     return None, None
                 continue
             style_array.append(styles[random_style])
     logger.debug(style_array)
     return style_array, requested_style
+
+def expand_category(categories, category_name):
+    styles = []
+    for item in categories[category_name]:
+        if item in categories:
+            styles += expand_category(categories,item)
+        else:
+            styles.append(item)
+    return styles
+
 
 def get_model_worker_count(model_name, models_json):
     for model_details in models_json:
