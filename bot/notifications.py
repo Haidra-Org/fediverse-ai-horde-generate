@@ -260,13 +260,13 @@ def parse_style(mention_content):
         for iter in range(4):
             if len(category_styles_running) == 0:
                 category_styles_running = category_styles.copy()
-            random_style = category_styles.pop(random.randrange(len(category_styles)))    
+            random_style = category_styles_running.pop(random.randrange(len(category_styles_running)))    
             if random_style not in styles:
                 logger.error(f"Category has style {random_style} which cannot be found in styles json. Skipping.")
                 continue
             if not get_model_worker_count(styles[random_style]["model"], horde_models):
                 logger.warning(f"Category style {random_style} has no workers available. Skipping.")
-                if not len(category_styles) and not len(style_array):
+                if not len(category_styles_running) and not len(style_array):
                     logger.error(f"All styles in category {requested_style} appear to have no workers. Aborting.")
                     return None, None
                 continue
