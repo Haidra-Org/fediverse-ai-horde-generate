@@ -244,7 +244,7 @@ def parse_style(mention_content):
     categories = jsons[1]
     horde_models = jsons[2]
     style_array = []
-    requested_style = "raw"
+    requested_style = "featured"
     sr = style_regex.search(mention_content)
     if sr:
         requested_style = sr.group(1).lower()
