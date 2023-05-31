@@ -275,6 +275,7 @@ def expand_category(categories, category_name):
     styles = []
     for item in categories[category_name]:
         if item in categories:
+            logger.debug(item,expand_category(categories,item))
             styles += expand_category(categories,item)
         else:
             styles.append(item)
