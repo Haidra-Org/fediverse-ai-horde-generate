@@ -2,3 +2,4 @@ requests
 mastodon.py
 redis
 bs4
+git+https://github.com/db0/pythorhead

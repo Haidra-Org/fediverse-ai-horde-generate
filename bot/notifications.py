@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 from datetime import timedelta
 from . import args, logger, db_r, HordeMultiGen, mastodon, JobStatus
 from requests.structures import CaseInsensitiveDict
-
+from bot.lemmy import lemmy
 
 imgen_params = {
     "n": 1,
@@ -162,6 +162,13 @@ class MentionHandler:
                     media_ids=media_dicts,
                     spoiler_text="AI Generated Images",
                     visibility=visibility,
+                )
+                community_id = lemmy.discover_community("botart")
+                lemmy.post(
+                    community_id=community_id,
+                    post_name="{requested_style}: {unformated_prompt}"[0:298],
+                    post_url=media_dicts[0]["url"],
+                    post_body=f"Prompt: {unformated_prompt}\nStyle: {requested_style}\n\n#aiart #stablediffusion{extra_tags}{tags_string}"
                 )
                 break
             except (MastodonGatewayTimeoutError, MastodonNetworkError, MastodonBadGatewayError) as e:
