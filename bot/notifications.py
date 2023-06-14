@@ -168,12 +168,14 @@ class MentionHandler:
                     image_body = ''
                     for media_dict in media_dicts:
                         image_body += f"![{media_dict['description']}]({media_dict['url']})"
-                    lemmy.post(
+                    post_result = lemmy.post(
                         community_id=community_id,
                         post_name=f"{requested_style}: {unformated_prompt}"[0:298],
                         post_url=media_dicts[0]["url"],
                         post_body=f"Prompt: {unformated_prompt}\n\nStyle: {requested_style}\n\n{image_body}"
                     )
+                    if not post_result:
+                        logger.warning("Failed to crosspost to Bot Art")
                 break
             except (MastodonGatewayTimeoutError, MastodonNetworkError, MastodonBadGatewayError) as e:
                 if iter >= 3:
