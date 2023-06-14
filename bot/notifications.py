@@ -164,6 +164,7 @@ class MentionHandler:
                     visibility=visibility,
                 )
                 if visibility in ["public", "unlisted"]:
+                    logger.info("Initiating crosspost to Bot Art")
                     community_id = lemmy.discover_community("botart")
                     image_body = ''
                     for media_dict in media_dicts:
