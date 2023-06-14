@@ -163,13 +163,14 @@ class MentionHandler:
                     spoiler_text="AI Generated Images",
                     visibility=visibility,
                 )
-                community_id = lemmy.discover_community("botart")
-                lemmy.post(
-                    community_id=community_id,
-                    post_name="{requested_style}: {unformated_prompt}"[0:298],
-                    post_url=media_dicts[0]["url"],
-                    post_body=f"Prompt: {unformated_prompt}\nStyle: {requested_style}\n\n#aiart #stablediffusion{extra_tags}{tags_string}"
-                )
+                if visibility in ["public", "unlisted"]:
+                    community_id = lemmy.discover_community("botart")
+                    lemmy.post(
+                        community_id=community_id,
+                        post_name="{requested_style}: {unformated_prompt}"[0:298],
+                        post_url=media_dicts[0]["url"],
+                        post_body=f"Prompt: {unformated_prompt}\nStyle: {requested_style}\n\n#aiart #stablediffusion{extra_tags}{tags_string}"
+                    )
                 break
             except (MastodonGatewayTimeoutError, MastodonNetworkError, MastodonBadGatewayError) as e:
                 if iter >= 3:
