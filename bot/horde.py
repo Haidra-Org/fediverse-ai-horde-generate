@@ -88,7 +88,10 @@ class HordeGenerate:
         self.prompt = submit_dict["prompt"]
         self.unique_id = unique_id
         self.status = JobStatus.INIT
-        self.headers = {"apikey": os.environ['HORDE_API']}
+        self.headers = {
+            "apikey": os.environ['HORDE_API'],
+            "Client-Agent": "db0_mastodon_bot:1.0.0:(discord)db0#1625"
+        }
         self.filenames = []
         self.seeds = []
         self.imgs = []

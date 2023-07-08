@@ -295,7 +295,6 @@ def parse_style(mention_content):
                     return None, None
                 continue
             style_array.append(styles[random_style])
-    logger.debug(style_array)
     return style_array, requested_style
 
 def expand_category(categories, category_name):
