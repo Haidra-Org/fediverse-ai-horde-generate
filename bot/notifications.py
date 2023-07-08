@@ -78,12 +78,13 @@ class MentionHandler:
         logger.info(f"Starting generation from ID '{self.notification_id}'. Prompt: {unformated_prompt}. Style: {requested_style}")
         submit_list = []
         for style in styles_array:
+            logger.debug(style)
             if "###" not in style["prompt"] and negprompt != '' and "###" not in negprompt:
                 negprompt = '###' + negprompt
             submit_dict = generic_submit_dict.copy()
             submit_dict["prompt"] = style["prompt"].format(p=unformated_prompt, np=negprompt)
             submit_dict["params"] = imgen_params.copy()
-            if style == "sdxl":
+            if style["model"] == "SDXL_beta::stability.ai#6901":
                 imgen_params["n"] = 2
             submit_dict["models"] = [style["model"]]
             submit_dict["params"]["width"] = style.get("width", 512)
