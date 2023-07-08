@@ -85,7 +85,7 @@ class MentionHandler:
             submit_dict["prompt"] = style["prompt"].format(p=unformated_prompt, np=negprompt)
             submit_dict["params"] = imgen_params.copy()
             if style["model"] == "SDXL_beta::stability.ai#6901":
-                imgen_params["n"] = 2
+                submit_dict["params"] = 2
             submit_dict["models"] = [style["model"]]
             submit_dict["params"]["width"] = style.get("width", 512)
             submit_dict["params"]["height"] = style.get("height", 512)
