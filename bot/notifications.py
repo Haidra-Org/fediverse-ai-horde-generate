@@ -106,7 +106,7 @@ class MentionHandler:
             time.sleep(1)
         media_dicts = []
         for job in gen.get_all_done_jobs():
-            for iter_fn in range(job.filenames):
+            for iter_fn in range(len(job.filenames)):
                 for iter in range(4):
                     try:
                         media_dict = mastodon.media_post(
