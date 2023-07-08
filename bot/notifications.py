@@ -106,20 +106,21 @@ class MentionHandler:
             time.sleep(1)
         media_dicts = []
         for job in gen.get_all_done_jobs():
-            for iter in range(4):
-                try:
-                    media_dict = mastodon.media_post(
-                        media_file=job.filename, 
-                        description=f"Image with seed {job.seed} generated via Stable Diffusion through @stablehorde@sigmoid.social. Prompt: {job.prompt}"
-                    )
-                    break
-                except (MastodonGatewayTimeoutError, MastodonNetworkError, MastodonBadGatewayError, MastodonAPIError) as e:
-                    # If a file fails, we skip it
-                    if iter >= 3:
-                        continue
-                    logger.warning(f"Error '{e}' when uploading files. Retry {iter+1}/3")
-            media_dicts.append(media_dict)
-            logger.debug(f"Uploaded {job.filename}")
+            for iter_fn in range(job.filenames):
+                for iter in range(4):
+                    try:
+                        media_dict = mastodon.media_post(
+                            media_file=job.filenames[iter_fn], 
+                            description=f"Image with seed {job.seeds[iter_fn]} generated via Stable Diffusion through @stablehorde@sigmoid.social. Prompt: {job.prompt}"
+                        )
+                        break
+                    except (MastodonGatewayTimeoutError, MastodonNetworkError, MastodonBadGatewayError, MastodonAPIError) as e:
+                        # If a file fails, we skip it
+                        if iter >= 3:
+                            continue
+                        logger.warning(f"Error '{e}' when uploading files. Retry {iter+1}/3")
+                media_dicts.append(media_dict)
+                logger.debug(f"Uploaded {job.filenames[iter_fn]}")
         if len(media_dicts) == 0:
             self.reply_faulted("Something went wrong when trying to fulfil your request. Please try again later")
             return
