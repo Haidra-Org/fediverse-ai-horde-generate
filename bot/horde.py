@@ -65,19 +65,19 @@ class HordeMultiGen:
     def get_all_filenames(self):
         filenames = []
         for job in self.get_all_done_jobs():
-            filenames.append(job.filename)
+            filenames += job.filenames
         return(filenames)
 
     def get_all_seeds(self):
         seeds = []
         for job in self.get_all_done_jobs():
-            seeds.append(job.seed)
+            seeds += job.seeds
         return(seeds)
 
     def get_all_images(self):
         imgs = []
         for job in self.get_all_done_jobs():
-            imgs.append(job.img)
+            imgs += job.imgs
         return(imgs)
 
 
@@ -89,9 +89,9 @@ class HordeGenerate:
         self.unique_id = unique_id
         self.status = JobStatus.INIT
         self.headers = {"apikey": os.environ['HORDE_API']}
-        self.filename = None
-        self.seed = None
-        self.img = None
+        self.filenames = []
+        self.seeds = []
+        self.imgs = []
         self.thread = None
         self.is_possible = True
         if asynchronous:
@@ -155,10 +155,7 @@ class HordeGenerate:
         results_json = retrieve_req.json()
         # logger.debug(results_json)
         if results_json['faulted']:
-            final_submit_dict = request_data.get_submit_dict()
-            if "source_image" in final_submit_dict:
-                final_submit_dict["source_image"] = f"img2img request with size: {len(final_submit_dict['source_image'])}"
-            logger.error(f"Something went wrong when generating the request. Please contact the horde administrator with your request details: {final_submit_dict}")
+            logger.error(f"Something went wrong when generating the request")
             self.status = JobStatus.FAULTED
             return
         results = results_json['generations']
@@ -174,13 +171,15 @@ class HordeGenerate:
                 base64_bytes = b64img.encode('utf-8')
                 img_bytes = base64.b64decode(base64_bytes)
             try:
-                self.img = Image.open(BytesIO(img_bytes))
+                img = Image.open(BytesIO(img_bytes))
+                self.imgs.append(img)
             except Exception:
                 logger.error("Error reading image data")
                 self.status = JobStatus.FAULTED
                 return
-            self.filename = f"{self.unique_id}_{iter}_horde_generation.jpg"
-            self.seed = results[iter]["seed"]
-            self.img.save(self.filename)
-            logger.debug(f"Saved: {self.filename}")
+            filename = f"{self.unique_id}_{iter}_horde_generation.jpg"
+            self.filenames.append(filename)
+            self.seeds.append(results[iter]["seed"])
+            img.save(filename)
+            logger.debug(f"Saved: {filename}")
         self.status = JobStatus.DONE

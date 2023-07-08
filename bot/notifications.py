@@ -141,7 +141,7 @@ class MentionHandler:
                 #             break
                 #     if not public_spot_found:
                 #         visibility = 'direct'
-                public_minutes = 30
+                public_minutes = 10
                 if os.environ['MASTODON_INSTANCE'] == "hachyderm.io":
                     public_minutes = 120
                 if visibility == 'public':
