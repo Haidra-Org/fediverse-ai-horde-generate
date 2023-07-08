@@ -266,12 +266,18 @@ def parse_style(mention_content):
         if not get_model_worker_count(styles[requested_style]["model"], horde_models):
             logger.error(f"Style '{requested_style}' appear to have no workers. Aborting.")
             return None, None
-        for iter in range(4):
+        n = 4
+        if requested_style == "sdxl":
+            n = 1
+        for iter in range(n):
             style_array.append(styles[requested_style])
     elif requested_style in categories:
         category_styles = expand_category(categories,requested_style)
         category_styles_running = category_styles.copy()
-        for iter in range(4):
+        n = 4
+        if "sdxl" in category_styles:
+            n = 1
+        for iter in range(n):
             if len(category_styles_running) == 0:
                 category_styles_running = category_styles.copy()
             random_style = category_styles_running.pop(random.randrange(len(category_styles_running)))    
