@@ -25,7 +25,7 @@ class PolledRatings:
 
     def check_polls(self):
         for poll in copy.deepcopy(self.known_polls):
-            if poll["expiry"] >= datetime.utcnow():
+            if poll["expiry"].timestamp() >= datetime.now().timestamp():
                 poll_info = mastodon.poll(poll["id"])
                 if poll_info["expired"] is False:
                     continue
