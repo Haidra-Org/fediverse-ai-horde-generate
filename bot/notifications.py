@@ -172,6 +172,8 @@ class MentionHandler:
                     visibility=visibility,
                 )
                 if len(media_dicts) > 1:
+                    # Allow the other post to appear
+                    time.sleep(5)
                     poll_options = []
                     for iter in range(len(media_dicts)):
                         poll_options.append(f"Generation {iter+1}")
