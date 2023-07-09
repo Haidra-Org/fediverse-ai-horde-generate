@@ -178,7 +178,7 @@ class MentionHandler:
                     poll = mastodon.make_poll(
                         options=poll_options,
                         # expires_in=1000,
-                        expires_in=60, # Testing
+                        expires_in=120, # Testing
                     )
                     status_dict = mastodon.status_reply(
                         to_status=media_status_dict,
