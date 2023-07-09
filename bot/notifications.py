@@ -157,16 +157,38 @@ class MentionHandler:
                 extra_tags = ''
                 if os.environ['MASTODON_INSTANCE'] == "hachyderm.io":
                     extra_tags = " #hachybots"
-                reply_text = f"Here are some images matching your request\nPrompt: {unformated_prompt}\nStyle: {requested_style}\n\n#aiart #stablediffusion #aihorde{extra_tags}{tags_string}"
-                if len(reply_text) > 500:
-                    reply_text = f"Here are some images matching your request\nPrompt: {unformated_prompt[0:300]}...\nStyle: {requested_style}\n\n#aiart #stablediffusion #aihorde{tags_string}"
-                mastodon.status_reply(
-                    to_status=self.incoming_status,
-                    status=reply_text, 
-                    media_ids=media_dicts,
-                    spoiler_text="AI Generated Images",
-                    visibility=visibility,
-                )
+                if len(media_dicts) > 1:
+                    reply_text = f"Here are some images matching your request\nPrompt: {unformated_prompt}\nStyle: {requested_style}\n\nPlease vote on best generation.\n#aiart #stablediffusion #aihorde{extra_tags}{tags_string}"
+                    if len(reply_text) > 500:
+                        reply_text = f"Here are some images matching your request\nPrompt: {unformated_prompt[0:300]}...\nStyle: {requested_style}\n\nPlease vote on best generation.\n#aiart #stablediffusion #aihorde{tags_string}"
+                    poll_options = []
+                    for iter in range(len(media_dicts)):
+                        poll_options.append(f"Generation {iter}")
+                    poll = mastodon.make_poll(
+                        options=poll_options,
+                        expires_in=1000,
+                    )
+                    status_dict = mastodon.status_reply(
+                        to_status=self.incoming_status,
+                        status=reply_text, 
+                        media_ids=media_dicts,
+                        spoiler_text="AI Generated Images",
+                        visibility=visibility,
+                        poll=poll,
+                    )
+                    ret_poll = status_dict['poll']
+                    logger.debug(ret_poll)
+                else:
+                    reply_text = f"Here are some images matching your request\nPrompt: {unformated_prompt}\nStyle: {requested_style}\n\n#aiart #stablediffusion #aihorde{extra_tags}{tags_string}"
+                    if len(reply_text) > 500:
+                        reply_text = f"Here are some images matching your request\nPrompt: {unformated_prompt[0:300]}...\nStyle: {requested_style}\n\n#aiart #stablediffusion #aihorde{tags_string}"
+                    mastodon.status_reply(
+                        to_status=self.incoming_status,
+                        status=reply_text, 
+                        media_ids=media_dicts,
+                        spoiler_text="AI Generated Images",
+                        visibility=visibility,
+                    )
                 if visibility in ["public", "unlisted"]:
                     logger.info("Initiating crosspost to Bot Art")
                     community_id = lemmy.discover_community("botart")
