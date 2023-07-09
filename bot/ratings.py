@@ -33,8 +33,11 @@ class PolledRatings:
                 continue
             max_title = max(poll_info["options"], key=lambda x: x['votes_count'])['title']
             max_votes = max(poll_info["options"], key=lambda x: x['votes_count'])['votes_count']
-            tied = any(v['votes_count'] == max_votes for v in poll_info["options"])
-            if tied:
+            found_max = 0
+            for v in poll_info["options"]:
+                if v['votes_count'] == max_votes:
+                    found_max += 1
+            if found_max > 1:
                 logger.info(f"WP {poll['wp_id']} is tied at {max_votes}. Ignoring")
                 self.known_polls.remove(poll)
                 continue
