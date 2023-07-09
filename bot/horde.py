@@ -95,8 +95,10 @@ class HordeGenerate:
         self.filenames = []
         self.seeds = []
         self.imgs = []
+        self.img_ids = []
         self.thread = None
         self.is_possible = True
+        self.req_id = None
         if asynchronous:
             self.thread = threading.Thread(target=self.generate_image, args=())
             self.thread.daemon = True
@@ -118,13 +120,13 @@ class HordeGenerate:
             return
         submit_results = submit_req.json()
         # logger.debug(submit_results)
-        req_id = submit_results['id']
+        self.req_id = submit_results['id']
         is_done = False
         retry = 0
         while not is_done:
             retry += 1
             try:
-                chk_req = requests.get(f'{HORDE_URL}/api/v2/generate/check/{req_id}')
+                chk_req = requests.get(f'{HORDE_URL}/api/v2/generate/check/{self.req_id}')
             except Exception:
                 self.status = JobStatus.FAULTED
                 return
@@ -147,7 +149,7 @@ class HordeGenerate:
                 return
             time.sleep(0.8)
         try:
-            retrieve_req = requests.get(f'{HORDE_URL}/api/v2/generate/status/{req_id}')
+            retrieve_req = requests.get(f'{HORDE_URL}/api/v2/generate/status/{self.req_id}')
         except Exception:
             self.status = JobStatus.FAULTED
             return
@@ -176,6 +178,7 @@ class HordeGenerate:
             try:
                 img = Image.open(BytesIO(img_bytes))
                 self.imgs.append(img)
+                self.img_ids.append(results[iter]["id"])
             except Exception:
                 logger.error("Error reading image data")
                 self.status = JobStatus.FAULTED

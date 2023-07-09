@@ -6,6 +6,7 @@ from datetime import timedelta
 from . import args, logger, db_r, HordeMultiGen, mastodon, JobStatus
 from requests.structures import CaseInsensitiveDict
 from bot.lemmy import lemmy
+from bot.ratings import polled_ratings
 
 imgen_params = {
     "n": 1,
@@ -77,6 +78,7 @@ class MentionHandler:
             unformated_prompt, negprompt = unformated_prompt.split("###", 1)
         logger.info(f"Starting generation from ID '{self.notification_id}'. Prompt: {unformated_prompt}. Style: {requested_style}")
         submit_list = []
+        submit_ratings = False
         for style in styles_array:
             logger.debug(style)
             if "###" not in style["prompt"] and negprompt != '' and "###" not in negprompt:
@@ -86,6 +88,7 @@ class MentionHandler:
             submit_dict["params"] = imgen_params.copy()
             if style["model"] == "SDXL_beta::stability.ai#6901":
                 submit_dict["params"]["n"] = 2
+                submit_ratings = True
             submit_dict["models"] = [style["model"]]
             submit_dict["params"]["width"] = style.get("width", 512)
             submit_dict["params"]["height"] = style.get("height", 512)
@@ -108,7 +111,8 @@ class MentionHandler:
                 return
             time.sleep(1)
         media_dicts = []
-        for job in gen.get_all_done_jobs():
+        done_jobs = gen.get_all_done_jobs()
+        for job in done_jobs:
             for iter_fn in range(len(job.filenames)):
                 for iter in range(4):
                     try:
@@ -170,10 +174,11 @@ class MentionHandler:
                 if len(media_dicts) > 1:
                     poll_options = []
                     for iter in range(len(media_dicts)):
-                        poll_options.append(f"Generation {iter}")
+                        poll_options.append(f"Generation {iter+1}")
                     poll = mastodon.make_poll(
                         options=poll_options,
-                        expires_in=1000,
+                        # expires_in=1000,
+                        expires_in=60, # Testing
                     )
                     status_dict = mastodon.status_reply(
                         to_status=media_status_dict,
@@ -183,6 +188,11 @@ class MentionHandler:
                     )
                     ret_poll = status_dict['poll']
                     logger.debug(ret_poll)
+                    if submit_ratings:
+                        polled_ratings.queue_poll(
+                            poll_dict = ret_poll,
+                            horde_job = done_jobs[0],
+                        )
                 if visibility in ["public", "unlisted"]:
                     logger.info("Initiating crosspost to Bot Art")
                     community_id = lemmy.discover_community("botart")
