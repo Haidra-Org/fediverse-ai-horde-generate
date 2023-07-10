@@ -43,7 +43,7 @@ class PolledRatings:
                 continue
             _, winning_gen = max_title.split(' ', 1)
             # To make it match the list index
-            winning_gen -= 1
+            winning_gen = int(winning_gen) - 1
             submit_dict = {"best": poll["image_ids"][winning_gen]}
             try:
                 submit_req = requests.post(
