@@ -21,11 +21,10 @@ class PolledRatings:
     def check_poll_thread(self):
         while True:
             self.check_polls()
-            time.sleep(5)
+            time.sleep(30)
 
     def check_polls(self):
         for poll in copy.deepcopy(self.known_polls):
-            logger.debug(f"checking {poll}")
             if poll["expiry"].timestamp() > datetime.now().timestamp():
                 continue
             poll_info = mastodon.poll(poll["id"])

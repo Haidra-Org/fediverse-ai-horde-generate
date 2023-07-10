@@ -184,7 +184,9 @@ class MentionHandler:
                     )
                     poll_status_dict = mastodon.status_reply(
                         to_status=media_status_dict,
-                        status="Please let us know which of the generated images is the best", 
+                        status="Please let us know which of the generated images is the best.", 
+                        sensitive = False,
+                        spoiler_text = None
                         visibility=visibility,
                         poll=poll,
                     )
