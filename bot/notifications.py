@@ -191,7 +191,6 @@ class MentionHandler:
                         poll=poll,
                     )
                     ret_poll = poll_status_dict['poll']
-                    logger.debug(ret_poll)
                     if submit_ratings:
                         polled_ratings.queue_poll(
                             poll_dict = ret_poll,
