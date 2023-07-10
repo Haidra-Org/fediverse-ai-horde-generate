@@ -61,6 +61,7 @@ class PolledRatings:
                 self.known_polls.remove(poll)
                 continue
             logger.info(f"Succesfully submitted rating for WP {poll['wp_id']}")
+            self.known_polls.remove(poll)
 
     def queue_poll(self, poll_dict, horde_job):
         poll_entry = {

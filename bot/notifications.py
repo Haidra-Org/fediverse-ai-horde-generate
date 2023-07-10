@@ -179,8 +179,8 @@ class MentionHandler:
                         poll_options.append(f"Generation {iter+1}")
                     poll = mastodon.make_poll(
                         options=poll_options,
-                        # expires_in=1000,
-                        expires_in=300, # Testing
+                        expires_in=900,
+                        # expires_in=300, # Testing
                     )
                     status_dict = mastodon.status_reply(
                         to_status=media_status_dict,
