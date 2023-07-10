@@ -186,7 +186,7 @@ class MentionHandler:
                         to_status=media_status_dict,
                         status="Please let us know which of the generated images is the best.", 
                         sensitive = False,
-                        spoiler_text = None
+                        spoiler_text = None,
                         visibility=visibility,
                         poll=poll,
                     )
