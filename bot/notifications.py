@@ -182,13 +182,13 @@ class MentionHandler:
                         expires_in=900,
                         # expires_in=300, # Testing
                     )
-                    status_dict = mastodon.status_reply(
+                    poll_status_dict = mastodon.status_reply(
                         to_status=media_status_dict,
                         status="Please let us know which of the generated images is the best", 
                         visibility=visibility,
                         poll=poll,
                     )
-                    ret_poll = status_dict['poll']
+                    ret_poll = poll_status_dict['poll']
                     logger.debug(ret_poll)
                     if submit_ratings:
                         polled_ratings.queue_poll(
@@ -201,6 +201,8 @@ class MentionHandler:
                     image_body = ''
                     for media_dict in media_dicts:
                         image_body += f"![{media_dict['description']}]({media_dict['url']})"
+                    if len(media_dicts) > 1:
+                        image_body += f"\n\n You can vote for the best image here: {poll_status_dict['url']}"
                     post_result = lemmy.post(
                         community_id=community_id,
                         post_name=f"{requested_style}: {unformated_prompt}"[0:298],
