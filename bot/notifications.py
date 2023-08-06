@@ -281,7 +281,7 @@ def get_styles():
                 if iter >= 3:
                     jsons.append(download["default"])
                     break
-                logger.warning(f"Error during file download. Retrying ({iter+1}/3)")
+                logger.warning(f"Error during file download ({e}). Retrying ({iter+1}/3)")
                 time.sleep(1)
     return jsons
 
