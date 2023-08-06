@@ -282,6 +282,7 @@ def get_styles():
                     jsons.append(download["default"])
                     break
                 logger.warning(f"Error during file download ({e}). Retrying ({iter+1}/3)")
+                logger.debug(r.text)
                 time.sleep(1)
     return jsons
 
