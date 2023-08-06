@@ -42,14 +42,14 @@ class MentionHandler:
 
     def is_finished(self):
         return self.status in [JobStatus.DONE, JobStatus.FAULTED]
-        
+
     @logger.catch(reraise=True)
     def handle_notification(self):
         if self.notification["status"]["visibility"] == "direct" and not term_regex.search(self.mention_content):
             self.handle_dm()
         else:
             self.handle_mention()
-        
+
     def handle_mention(self):
         # pp.pprint(notification)
         self.status = JobStatus.WORKING
@@ -117,7 +117,7 @@ class MentionHandler:
                 for iter in range(4):
                     try:
                         media_dict = mastodon.media_post(
-                            media_file=job.filenames[iter_fn], 
+                            media_file=job.filenames[iter_fn],
                             description=f"Image with seed {job.seeds[iter_fn]} generated via Stable Diffusion through @stablehorde@sigmoid.social. Prompt: {job.prompt}"
                         )
                         break
@@ -166,7 +166,7 @@ class MentionHandler:
                     reply_text = f"Here are some images matching your request\nPrompt: {unformated_prompt[0:300]}...\nStyle: {requested_style}\n\n#aiart #stablediffusion #aihorde{tags_string}"
                 media_status_dict = mastodon.status_reply(
                     to_status=self.incoming_status,
-                    status=reply_text, 
+                    status=reply_text,
                     media_ids=media_dicts,
                     spoiler_text="AI Generated Images",
                     visibility=visibility,
@@ -184,7 +184,7 @@ class MentionHandler:
                     )
                     poll_status_dict = mastodon.status_reply(
                         to_status=media_status_dict,
-                        status="Please let us know which of the generated images is the best.", 
+                        status="Please let us know which of the generated images is the best.",
                         sensitive = False,
                         spoiler_text = None,
                         visibility=visibility,
@@ -246,7 +246,7 @@ class MentionHandler:
         mastodon.status_reply(
             to_status=self.incoming_status,
             status=message,
-            visibility=visibility, 
+            visibility=visibility,
         )
 
 def get_styles():
@@ -278,7 +278,7 @@ def get_styles():
                 jsons.append(r.json())
                 break
             except Exception as e:
-                if iter >= 3: 
+                if iter >= 3:
                     jsons.append(download["default"])
                     break
                 logger.warning(f"Error during file download. Retrying ({iter+1}/3)")
@@ -302,7 +302,7 @@ def parse_style(mention_content):
             logger.error(f"Style '{requested_style}' appear to have no workers. Aborting.")
             return None, None
         n = 4
-        if requested_style == "sdxl":
+        if styles[requested_style]["model"] == "SDXL_beta::stability.ai#6901":
             n = 1
         for iter in range(n):
             style_array.append(styles[requested_style])
@@ -310,12 +310,11 @@ def parse_style(mention_content):
         category_styles = expand_category(categories,requested_style)
         category_styles_running = category_styles.copy()
         n = 4
-        if "sdxl" in category_styles:
-            n = 1
+        uses_sdxl_beta = None
         for iter in range(n):
             if len(category_styles_running) == 0:
                 category_styles_running = category_styles.copy()
-            random_style = category_styles_running.pop(random.randrange(len(category_styles_running)))    
+            random_style = category_styles_running.pop(random.randrange(len(category_styles_running)))
             if random_style not in styles:
                 logger.error(f"Category has style {random_style} which cannot be found in styles json. Skipping.")
                 continue
@@ -325,7 +324,16 @@ def parse_style(mention_content):
                     logger.error(f"All styles in category {requested_style} appear to have no workers. Aborting.")
                     return None, None
                 continue
+            is_sdxl_beta = styles[random_style]["model"] == "SDXL_beta::stability.ai#6901"
+            # We don't want to mix SD1.5/SD2 with SDXL_beta
+            if uses_sdxl_beta is False and is_sdxl_beta:
+                continue
             style_array.append(styles[random_style])
+            # When the category has an sdxl_beta style, we use only 1 of them as it gets 2 images from that one
+            if is_sdxl_beta is True:
+                break
+            if uses_sdxl_beta is None:
+                uses_sdxl_beta = is_sdxl_beta
     return style_array, requested_style
 
 def expand_category(categories, category_name):
