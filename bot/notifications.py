@@ -95,8 +95,11 @@ class MentionHandler:
             submit_dict["params"]["sampler_name"] = style.get("sampler", "k_euler_a")
             submit_dict["params"]["steps"] = style.get("steps", 45)
             submit_dict["params"]["cfg_scale"] = style.get("cfg_scale", 7.5)
+            submit_dict["params"]["hires_fix"] = style.get("hires_fix", False)
             if "loras" in style:
                 submit_dict["params"]["loras"] = style["loras"]
+            if "tis" in style:
+                submit_dict["params"]["tis"] = style["tis"]
             submit_list.append(submit_dict)
         gen = HordeMultiGen(submit_list, self.notification_id)
         while not gen.all_gens_done():
