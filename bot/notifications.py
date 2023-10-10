@@ -117,6 +117,7 @@ class MentionHandler:
         done_jobs = gen.get_all_done_jobs()
         for job in done_jobs:
             for iter_fn in range(len(job.filenames)):
+                logger.debug(f"Uploading {job.filenames[iter_fn]}...")
                 for iter in range(4):
                     try:
                         media_dict = mastodon.media_post(
