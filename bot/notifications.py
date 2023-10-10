@@ -48,6 +48,10 @@ class MentionHandler:
         if self.notification["status"]["visibility"] == "direct" and not term_regex.search(self.mention_content):
             self.handle_dm()
         else:
+            if db_r.get(str(self.notification.author)):
+                logger.warning(f"Too frequent requests from {self.notification.author}")
+                self.reply_faulted("Unfortunately this bot has been rate limited. Please only send one request every 5 minutes.")
+                return
             self.handle_mention()
 
     def handle_mention(self):
@@ -68,6 +72,7 @@ class MentionHandler:
         if len(styles_array) == 0:
             self.reply_faulted("We could not discover this style in our database. Please pick one from style (https://github.com/db0/Stable-Horde-Styles/blob/main/styles.json) or categories (https://github.com/db0/Stable-Horde-Styles/blob/main/categories.json) ")
             return
+        db_r.setex(str(self.notification.author), timedelta(minutes=5), 1)
         # For now we're only have the same styles on each element. Later we might be able to have multiple ones.
         unformated_prompt = reg_res.group(1)
         negprompt = ''
@@ -118,7 +123,7 @@ class MentionHandler:
         for job in done_jobs:
             for iter_fn in range(len(job.filenames)):
                 logger.debug(f"Uploading {job.filenames[iter_fn]}...")
-                for iter in range(4):
+                for iter in range(3):
                     try:
                         media_dict = mastodon.media_post(
                             media_file=job.filenames[iter_fn],
@@ -127,7 +132,7 @@ class MentionHandler:
                         break
                     except (MastodonGatewayTimeoutError, MastodonNetworkError, MastodonBadGatewayError, MastodonAPIError) as e:
                         # If a file fails, we skip it
-                        if iter >= 3:
+                        if iter >= 2:
                             continue
                         logger.warning(f"Error '{e}' when uploading files. Retry {iter+1}/3")
                 media_dicts.append(media_dict)

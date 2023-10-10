@@ -10,7 +10,7 @@ class PolledRatings:
 
     known_polls = []
     headers = {
-        "Client-Agent": "db0_mastodon_bot:1.0.0:(discord)db0#1625"
+        "Client-Agent": "db0_mastodon_bot:1.0.1:@dbyzer0:matrix.org"
     }
 
     def __init__(self):
