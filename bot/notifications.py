@@ -48,8 +48,8 @@ class MentionHandler:
         if self.notification["status"]["visibility"] == "direct" and not term_regex.search(self.mention_content):
             self.handle_dm()
         else:
-            if db_r.get(str(self.notification.author)):
-                logger.warning(f"Too frequent requests from {self.notification.author}")
+            if db_r.get(str(self.notification["account"]["acct"])):
+                logger.warning(f"Too frequent requests from {self.notification['account']['acct']}")
                 self.reply_faulted("Unfortunately this bot has been rate limited. Please only send one request every 5 minutes.")
                 return
             self.handle_mention()
@@ -72,7 +72,7 @@ class MentionHandler:
         if len(styles_array) == 0:
             self.reply_faulted("We could not discover this style in our database. Please pick one from style (https://github.com/db0/Stable-Horde-Styles/blob/main/styles.json) or categories (https://github.com/db0/Stable-Horde-Styles/blob/main/categories.json) ")
             return
-        db_r.setex(str(self.notification.author), timedelta(minutes=5), 1)
+        db_r.setex(str(self.notification["account"]["acct"]), timedelta(minutes=5), 1)
         # For now we're only have the same styles on each element. Later we might be able to have multiple ones.
         unformated_prompt = reg_res.group(1)
         negprompt = ''
