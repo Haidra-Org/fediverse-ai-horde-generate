@@ -358,7 +358,7 @@ def expand_category(categories, category_name):
 
 
 def get_featured_style(categories):
-    return categories['featured']
+    return categories['featured'][0]
 
 
 def get_model_worker_count(model_name, models_json):
