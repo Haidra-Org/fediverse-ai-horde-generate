@@ -305,7 +305,9 @@ def parse_style(mention_content):
     requested_style = "featured"
     sr = style_regex.search(mention_content)
     if sr:
-        requested_style = sr.group(1).lower()
+        requested_style = sr.group(1).lower()  
+    if requested_style == "featured":
+        requested_style = get_featured_style(categories)
     if requested_style in styles:
         if not get_model_worker_count(styles[requested_style]["model"], horde_models):
             logger.error(f"Style '{requested_style}' appear to have no workers. Aborting.")
@@ -353,6 +355,10 @@ def expand_category(categories, category_name):
         else:
             styles.append(item)
     return styles
+
+
+def get_featured_style(categories):
+    return categories['featured']
 
 
 def get_model_worker_count(model_name, models_json):
