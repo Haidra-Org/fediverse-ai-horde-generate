@@ -48,10 +48,6 @@ class MentionHandler:
         if self.notification["status"]["visibility"] == "direct" and not term_regex.search(self.mention_content):
             self.handle_dm()
         else:
-            if db_r.get(str(self.notification["account"]["acct"])):
-                logger.warning(f"Too frequent requests from {self.notification['account']['acct']}")
-                self.reply_faulted("Unfortunately this bot has been rate limited. Please only send one request every 5 minutes.")
-                return
             self.handle_mention()
 
     def handle_mention(self):
@@ -64,6 +60,10 @@ class MentionHandler:
             logger.info(f"{self.request_id} is not a generation request, skipping")
             db_r.setex(str(self.notification_id), timedelta(days=30), 1)
             self.status = JobStatus.DONE
+            return
+        if db_r.get(str(self.notification["account"]["acct"])):
+            logger.warning(f"Too frequent requests from {self.notification['account']['acct']}")
+            self.reply_faulted("Unfortunately this bot has been rate limited. Please only send one request every 5 minutes.")
             return
         styles_array, requested_style = parse_style(self.mention_content)
         if styles_array is None:
