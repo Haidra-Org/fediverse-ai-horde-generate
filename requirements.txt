@@ -2,4 +2,4 @@ requests
 mastodon.py
 redis
 bs4
-pythorhead
+pythorhead>=0.20.0
