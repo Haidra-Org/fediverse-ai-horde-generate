@@ -97,7 +97,7 @@ class MentionHandler:
             submit_dict["models"] = [style["model"]]
             submit_dict["params"]["width"] = style.get("width", 512)
             submit_dict["params"]["height"] = style.get("height", 512)
-            submit_dict["params"]["sampler_name"] = style.get("sampler", "k_euler_a")
+            submit_dict["params"]["sampler_name"] = style.get("sampler_name", "k_euler_a")
             submit_dict["params"]["steps"] = style.get("steps", 45)
             submit_dict["params"]["cfg_scale"] = style.get("cfg_scale", 7.5)
             submit_dict["params"]["hires_fix"] = style.get("hires_fix", False)
