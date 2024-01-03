@@ -61,7 +61,7 @@ class MentionHandler:
             db_r.setex(str(self.notification_id), timedelta(days=30), 1)
             self.status = JobStatus.DONE
             return
-        if db_r.get(str(self.notification["account"]["acct"])):
+        if db_r.get(str(self.notification["account"]["acct"])) and str(self.notification["account"]["acct"]) != 'stablehorde':
             logger.warning(f"Too frequent requests from {self.notification['account']['acct']}")
             self.reply_faulted("Unfortunately this bot has been rate limited. Please only send one request every 5 minutes.")
             return
