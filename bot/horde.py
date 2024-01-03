@@ -140,7 +140,7 @@ class HordeGenerate:
                 self.is_possible = False
                 return
             chk_results = chk_req.json()
-            logger.debug([self.submit_dict.get("models"), chk_results])
+            logger.debug([self.unique_id, self.submit_dict.get("models"), chk_results])
             is_done = chk_results['done']
             is_faulted = chk_results['faulted']
             self.is_possible = chk_results['is_possible']
