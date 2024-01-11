@@ -215,7 +215,7 @@ class MentionHandler:
                         image_body += f"\n\n You can vote for the best image here: {poll_status_dict['url']}"
                     post_result = lemmy.post(
                         community_id=community_id,
-                        name=f"{requested_style}: {unformated_prompt}"[0:298],
+                        name=f"{requested_style}: {unformated_prompt}"[0:200],
                         url=media_dicts[0]["url"],
                         body=f"Prompt: {unformated_prompt}\n\nStyle: {requested_style}\n\n{image_body}"
                     )
