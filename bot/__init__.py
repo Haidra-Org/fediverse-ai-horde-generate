@@ -18,12 +18,20 @@ else:
     logger.init_err("Database", status="Failed")
     raise Exception("No redis DB found")
 
+if args.type == "mastodon":
+    mastodon = Mastodon(
+        access_token = 'pytooter_usercred.secret',
+        api_base_url = f"https://{os.environ['MASTODON_INSTANCE']}"
+    )
 
-mastodon = Mastodon(
-    access_token = 'pytooter_usercred.secret',
-    api_base_url = f"https://{os.environ['MASTODON_INSTANCE']}"
-)
+    from .mastodon_notifications import MentionHandler
+    from .mastodon_listener import StreamListenerExtended
+if args.type == "lemmy":
+    mastodon = Mastodon(
+        access_token = 'pytooter_usercred.secret',
+        api_base_url = f"https://{os.environ['MASTODON_INSTANCE']}"
+    )
 
-from .notifications import MentionHandler
-from .listener import StreamListenerExtended
-    
+    from .mastodon_notifications import MentionHandler
+    from .mastodon_listener import StreamListenerExtended
+        
