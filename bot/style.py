@@ -58,6 +58,7 @@ class Styling:
         self.submit_list = []
         for style in self.style_array:
             logger.debug(style)
+            negprompt = self.negprompt
             if "###" not in style["prompt"] and negprompt != '' and "###" not in negprompt:
                 negprompt = '###' + negprompt
             submit_dict = generic_submit_dict.copy()
