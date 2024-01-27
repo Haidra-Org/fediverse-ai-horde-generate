@@ -118,7 +118,7 @@ class HordeGenerate:
         simple_client = AIHordeAPISimpleClient()
         genResults, _ = simple_client.image_generate_request(
             ImageGenerateAsyncRequest(
-                apikey='OH5Xt5xuteJFc-ozqvY8-A',
+                apikey='0000000000',
                 **self.submit_dict
             ),
         )
