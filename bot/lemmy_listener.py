@@ -1,11 +1,13 @@
 import threading
 import time
-from mastodon import StreamListener
-from . import logger, MentionHandler, mastodon, JobStatus
+from bot.lemmy_ctrl import lemmy
+from bot.logger import logger
+from bot.lemmy_notifications import LemmyMentionHandler
 
 
-class StreamListenerExtended(StreamListener):
+class StreamListenerExtended():
     stop_thread = False
+    session_seen_notifications =set()
 
     def __init__(self):
         super().__init__()
@@ -15,12 +17,23 @@ class StreamListenerExtended(StreamListener):
         self.queue_thread = threading.Thread(target=self.process_queue, args=())
         self.queue_thread.daemon = True
         self.queue_thread.start()
+        self.start_loop()
 
     @logger.catch(reraise=True)
-    def on_notification(self,notification):
-        if notification["type"] == "mention":
-            self.queue.append(MentionHandler(notification))
-    
+    def start_loop(self):
+        while not self.stop_thread:
+            mentions = lemmy.mention.list(
+                unread_only=True,
+                limit=10
+            )
+            for mention in mentions['mentions']:
+                mention_id = mention['person_mention']['id']
+                if mention_id not in self.session_seen_notifications:
+                    self.queue.append(LemmyMentionHandler(mention))
+                    self.session_seen_notifications.add(mention_id)
+            time.sleep(1)
+            
+   
     def shutdown(self):
         self.stop_thread = True
 

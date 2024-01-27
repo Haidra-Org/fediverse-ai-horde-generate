@@ -21,6 +21,7 @@ class HordeMultiGen:
             job_unique_id = str(iter) + '_' + str(self.unique_id)
             self.jobs.append(HordeGenerate(submit_dict, job_unique_id, True))
             iter += 1
+            time.sleep(0.75)
         
     def all_gens_done(self):
         return len(self.get_all_ongoing_jobs()) == 0
@@ -90,7 +91,7 @@ class HordeGenerate:
         self.status = JobStatus.INIT
         self.headers = {
             "apikey": os.environ['HORDE_API'],
-            "Client-Agent": "db0_mastodon_bot:1.0.0:(discord)db0#1625"
+            "Client-Agent": "db0_fediverse_bot:2.0.0:(discord)db0#1625"
         }
         self.filenames = []
         self.seeds = []
@@ -112,10 +113,12 @@ class HordeGenerate:
         self.status = JobStatus.WORKING
         try:
             submit_req = requests.post(f'{HORDE_URL}/api/v2/generate/async', json = self.submit_dict, headers = self.headers)
-        except Exception:
+        except Exception as err:
+            logger.warning(f"Exception on submit: {err}")
             self.status = JobStatus.FAULTED
             return
         if not submit_req.ok:
+            logger.warning(f"Unexpected error code on submit: {submit_req.text}")
             self.status = JobStatus.FAULTED
             return
         submit_results = submit_req.json()
