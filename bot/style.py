@@ -143,7 +143,7 @@ class Styling:
             if not self.get_model_worker_count(styles[requested_style]["model"], horde_models):
                 logger.error(f"Style '{requested_style}' appear to have no workers. Aborting.")
                 return None, None
-            n = 1
+            n = 4
             if styles[requested_style]["model"] == "SDXL_beta::stability.ai#6901":
                 n = 1
             for iter in range(n):
