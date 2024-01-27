@@ -28,7 +28,7 @@ class Styling:
     prompt: str
     negprompt: str = ''
     style: str
-    style_array: list[str]
+    style_array: list[str] = None
     gen: HordeMultiGen
     submit_list: list[dict] = []
 
@@ -49,10 +49,15 @@ class Styling:
 
     def prepare_payload(self):
         if self.style_array is None:
-            raise ModelNotServed
-        if len(self.style_array) == 0:
             raise UnknownStyle
+        if len(self.style_array) == 0:
+            raise ModelNotServed
         self.submit_list = []
+        n_per = 4
+        if len(self.style_array) == 2:
+            n_per = 2
+        if len(self.style_array) > 2:
+            n_per = 1
         for style in self.style_array:
             logger.debug(style)
             negprompt = self.negprompt
@@ -68,6 +73,7 @@ class Styling:
             submit_dict["params"]["steps"] = style.get("steps", 45)
             submit_dict["params"]["cfg_scale"] = style.get("cfg_scale", 7.5)
             submit_dict["params"]["hires_fix"] = style.get("hires_fix", False)
+            submit_dict["params"]["n"] = n_per
             if "loras" in style:
                 submit_dict["params"]["loras"] = style["loras"]
             if "tis" in style:
@@ -132,7 +138,6 @@ class Styling:
         styles = jsons[0]
         categories = jsons[1]
         horde_models = jsons[2]
-        style_array = []
         requested_style = "featured"
         sr = style_regex.search(self.notification_text)
         if sr:
@@ -140,29 +145,28 @@ class Styling:
         if requested_style == "featured":
             requested_style = self.get_featured_style(categories)
         if requested_style in styles:
+            self.style_array = []
             if not self.get_model_worker_count(styles[requested_style]["model"], horde_models):
                 logger.error(f"Style '{requested_style}' appear to have no workers. Aborting.")
                 return None, None
-            n = 4
-            if styles[requested_style]["model"] == "SDXL_beta::stability.ai#6901":
-                n = 1
-            for iter in range(n):
-                style_array.append(styles[requested_style])
+            self.style_array.append(styles[requested_style])
         elif requested_style in categories:
+            self.style_array = []
             category_styles = self.expand_category(categories,requested_style)
             category_styles_running = category_styles.copy()
             n = 4
             uses_sdxl_beta = None
             for iter in range(n):
                 if len(category_styles_running) == 0:
-                    category_styles_running = category_styles.copy()
+                    # category_styles_running = category_styles.copy()
+                    break # We instead use n > 1 now to be more efficient
                 random_style = category_styles_running.pop(random.randrange(len(category_styles_running)))
                 if random_style not in styles:
                     logger.error(f"Category has style {random_style} which cannot be found in styles json. Skipping.")
                     continue
                 if not self.get_model_worker_count(styles[random_style]["model"], horde_models):
                     logger.warning(f"Category style {random_style} has no workers available. Skipping.")
-                    if not len(category_styles_running) and not len(style_array):
+                    if not len(category_styles_running) and not len(self.style_array):
                         logger.error(f"All styles in category {requested_style} appear to have no workers. Aborting.")
                         return None, None
                     continue
@@ -170,13 +174,12 @@ class Styling:
                 # We don't want to mix SD1.5/SD2 with SDXL_beta
                 if uses_sdxl_beta is False and is_sdxl_beta:
                     continue
-                style_array.append(styles[random_style])
+                self.style_array.append(styles[random_style])
                 # When the category has an sdxl_beta style, we use only 1 of them as it gets 2 images from that one
                 if is_sdxl_beta is True:
                     break
                 if uses_sdxl_beta is None:
                     uses_sdxl_beta = is_sdxl_beta
-        self.style_array = style_array
         self.style = requested_style
 
     def expand_category(self,categories, category_name):
