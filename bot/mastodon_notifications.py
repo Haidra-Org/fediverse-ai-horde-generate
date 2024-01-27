@@ -39,7 +39,7 @@ class MentionHandler:
         try:
             styling = Styling(self.mention_content)
             db_r.setex(str(self.notification["account"]["acct"]), timedelta(minutes=5), 1)
-            gen: HordeMultiGen = styling.request_images()
+            gen: HordeMultiGen = styling.request_images(self.notification_id)
         except HordeBotReplyException as err:
             self.reply_faulted(err.reply)
             return
