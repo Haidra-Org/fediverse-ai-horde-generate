@@ -1,11 +1,11 @@
 import os
 from dotenv import load_dotenv
-from .argparser import args
-from .logger import logger, set_logger_verbosity, quiesce_logger
-from .redisctrl import get_bot_db, is_redis_up
-from .enums import JobStatus
-from .horde import HordeGenerate, HordeMultiGen
+from bot.argparser import args
+from bot.logger import logger, set_logger_verbosity, quiesce_logger
+from bot.redisctrl import get_bot_db, is_redis_up
+from bot.lemmy_ctrl import lemmy
 from mastodon import Mastodon
+
 
 load_dotenv()
 
@@ -24,14 +24,9 @@ if args.type == "mastodon":
         api_base_url = f"https://{os.environ['MASTODON_INSTANCE']}"
     )
 
-    from .mastodon_notifications import MentionHandler
-    from .mastodon_listener import StreamListenerExtended
+    from bot.mastodon_notifications import MentionHandler
+    from bot.mastodon_listener import StreamListenerExtended
 if args.type == "lemmy":
-    mastodon = Mastodon(
-        access_token = 'pytooter_usercred.secret',
-        api_base_url = f"https://{os.environ['MASTODON_INSTANCE']}"
-    )
-
-    from .mastodon_notifications import MentionHandler
-    from .mastodon_listener import StreamListenerExtended
+    from bot.lemmy_notifications import MentionHandler
+    from bot.lemmy_listener import StreamListenerExtended
         

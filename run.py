@@ -1,7 +1,9 @@
 import os, time
 import threading
-from mastodon.Mastodon import MastodonNetworkError, MastodonNotFoundError, MastodonGatewayTimeoutError, MastodonBadGatewayError, MastodonAPIError
-from bot import args, logger, db_r, set_logger_verbosity, quiesce_logger, MentionHandler, StreamListenerExtended, mastodon
+from mastodon.Mastodon import MastodonNetworkError, MastodonGatewayTimeoutError, MastodonBadGatewayError, MastodonAPIError
+from bot.argparser import args
+from bot.logger import logger, set_logger_verbosity, quiesce_logger
+from bot.redisctrl import db_r
 
 set_logger_verbosity(args.verbosity)
 quiesce_logger(args.quiet)
@@ -13,7 +15,6 @@ def check_for_requests():
         exclude_types=["follow", "favourite", "reblog", "poll", "follow_request"]
     )
     notifications.reverse()
-    # pp.pprint(notifications[0])
     logger.info(f"Retrieved {len(notifications)} notifications.")
     waiting_threads = []
     for notification in notifications:
@@ -26,6 +27,9 @@ def check_for_requests():
 
 logger.init("Mastodon Stable Horde Bot", status="Starting")
 try:
+    from bot.mastodon_notifications import db_r, MentionHandler
+    from bot.mastodon_listener import StreamListenerExtended
+    from bot.mastodon_ctrl import mastodon
     check_for_requests()
     while True:
         try:

@@ -3,7 +3,7 @@ from mastodon.Mastodon import MastodonNetworkError, MastodonNotFoundError, Masto
 from bs4 import BeautifulSoup
 from datetime import timedelta
 from bot import logger, db_r, HordeMultiGen, mastodon, JobStatus
-from bot.lemmy import lemmy
+from bot.lemmy_ctrl import lemmy, lemmy_image_community_id
 from bot.ratings import polled_ratings
 from bot.style import Styling
 from bot.exceptions import HordeBotReplyException, HordeBotException
@@ -25,7 +25,7 @@ class MentionHandler:
 
     @logger.catch(reraise=True)
     def handle_notification(self):
-        if self.notification["status"]["visibility"] == "direct" and not term_regex.search(self.mention_content):
+        if self.notification["status"]["visibility"] == "direct" and not Styling.is_generation_request(self.mention_content):
             self.handle_dm()
         else:
             self.handle_mention()
@@ -73,6 +73,7 @@ class MentionHandler:
                 logger.debug(f"Uploaded {job.filenames[iter_fn]}")
         if len(media_dicts) == 0:
             self.reply_faulted("Something went wrong when trying to fulfil your request. Please try again later")
+            self.cleanup_files(gen)
             return
         logger.info(f"replying to {self.request_id}: {self.mention_content}")
         tags_string = ''
@@ -141,14 +142,13 @@ class MentionHandler:
                         )
                 if visibility in ["public", "unlisted"]:
                     logger.info("Initiating crosspost to Bot Art")
-                    community_id = lemmy.discover_community("botart")
                     image_body = ''
                     for media_dict in media_dicts:
                         image_body += f"![{media_dict['description']}]({media_dict['url']})"
                     if len(media_dicts) > 1:
                         image_body += f"\n\n You can vote for the best image here: {poll_status_dict['url']}"
                     post_result = lemmy.post(
-                        community_id=community_id,
+                        community_id=lemmy_image_community_id,
                         name=f"{styling.style}: {styling.prompt}"[0:200],
                         url=media_dicts[0]["url"],
                         body=f"Prompt: {styling.prompt}\n\nStyle: {styling.style}\n\n{image_body}"
@@ -159,14 +159,15 @@ class MentionHandler:
             except (MastodonGatewayTimeoutError, MastodonNetworkError, MastodonBadGatewayError) as err:
                 if iter >= 3:
                     self.reply_faulted("Something went wrong when trying to fulfil your request. Please try again later")
+                    self.cleanup_files(gen)
                     return
                 logger.warning(f"Network error when replying. Retry {iter+1}/3")
             except (MastodonNotFoundError) as err:
                 self.set_faulted()
                 logger.error(f"Missing reply. Aborting!")
+                self.cleanup_files(gen)
                 return
-        for fn in gen.get_all_filenames():
-            os.remove(fn)
+        self.cleanup_files(gen)
         # mastodon.status_reply(to_status=self.incoming_status, status="Here is your generation", media_ids=media_dict)
         db_r.setex(str(self.notification_id), timedelta(days=30), 1)
         self.status = JobStatus.DONE
@@ -191,3 +192,7 @@ class MentionHandler:
             status=message,
             visibility=visibility,
         )
+
+    def cleanup_files(self,gen):
+        for fn in gen.get_all_filenames():
+            os.remove(fn)

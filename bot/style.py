@@ -3,7 +3,7 @@ from mastodon.Mastodon import MastodonNetworkError, MastodonNotFoundError, Masto
 from datetime import timedelta
 from bot import logger, db_r, HordeMultiGen, mastodon, JobStatus
 from bot.exceptions import *
-from bot.lemmy import lemmy
+from bot.lemmy_ctrl import lemmy
 
 imgen_params = {
     "n": 1,
@@ -201,3 +201,7 @@ class Styling:
             if model_name == model_details["name"]:
                 return model_details["count"]
         return 0
+
+    @staticmethod
+    def is_generation_request(self, text):
+        return term_regex.search(text)
