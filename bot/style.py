@@ -91,7 +91,7 @@ class Styling:
         return self.gen
 
 
-    def get_styles():
+    def get_styles(self):
         # styles = db_r.get("styles")
         # logger.info([styles, type(styles)])
         downloads = [
