@@ -3,3 +3,4 @@ mastodon.py
 redis
 bs4
 pythorhead>=0.20.0
+horde-sdk

@@ -6,6 +6,9 @@ from bot.logger import logger
 from bot.enums import JobStatus
 from PIL import Image, ImageFont, ImageDraw, ImageFilter, ImageOps
 from io import BytesIO
+from horde_sdk.ai_horde_api.ai_horde_clients import AIHordeAPISimpleClient
+from horde_sdk.ai_horde_api.apimodels import ImageGenerateAsyncRequest, ImageGeneration
+
 
 HORDE_URL = "https://aihorde.net"
 
@@ -15,12 +18,13 @@ class HordeMultiGen:
         self.unique_id = unique_id
         self.status = JobStatus.INIT
         self.jobs = []
-        iter = 0
+        giter = 0
         logger.debug(submit_dicts)
         for submit_dict in self.submit_dicts:
-            job_unique_id = str(iter) + '_' + str(self.unique_id)
+            job_unique_id = str(giter) + '_' + str(self.unique_id)
             self.jobs.append(HordeGenerate(submit_dict, job_unique_id, True))
-            iter += 1
+            giter += 1
+            time.sleep(0.75)
         
     def all_gens_done(self):
         return len(self.get_all_ongoing_jobs()) == 0
@@ -96,6 +100,7 @@ class HordeGenerate:
         self.seeds = []
         self.imgs = []
         self.img_ids = []
+        self.generations: list[ImageGeneration]
         self.thread = None
         self.is_possible = True
         self.req_id = None
@@ -110,82 +115,30 @@ class HordeGenerate:
     def generate_image(self):
         logger.debug(f"Submitting: {self.submit_dict}")
         self.status = JobStatus.WORKING
-        try:
-            submit_req = requests.post(f'{HORDE_URL}/api/v2/generate/async', json = self.submit_dict, headers = self.headers)
-        except Exception:
-            self.status = JobStatus.FAULTED
-            return
-        if not submit_req.ok:
-            self.status = JobStatus.FAULTED
-            return
-        submit_results = submit_req.json()
-        # logger.debug(submit_results)
-        self.req_id = submit_results['id']
-        is_done = False
-        retry = 0
-        while not is_done:
-            retry += 1
-            try:
-                chk_req = requests.get(f'{HORDE_URL}/api/v2/generate/check/{self.req_id}')
-            except Exception:
-                self.status = JobStatus.FAULTED
-                return
-            if not chk_req.ok:
-                logger.error(chk_req.text)
-                self.status = JobStatus.FAULTED
-                return
-            if retry >= 300: 
-                logger.error("Image failed to return in a reasonable amount of time. Aborting")
-                self.status = JobStatus.FAULTED
-                self.is_possible = False
-                return
-            chk_results = chk_req.json()
-            logger.debug([self.unique_id, self.submit_dict.get("models"), chk_results])
-            is_done = chk_results['done']
-            is_faulted = chk_results['faulted']
-            self.is_possible = chk_results['is_possible']
-            if is_faulted or not self.is_possible:
-                self.status = JobStatus.FAULTED
-                return
-            time.sleep(0.8)
-        try:
-            retrieve_req = requests.get(f'{HORDE_URL}/api/v2/generate/status/{self.req_id}')
-        except Exception:
-            self.status = JobStatus.FAULTED
-            return
-        if not retrieve_req.ok:
-            logger.error(retrieve_req.text)
-            self.status = JobStatus.FAULTED
-            return
-        results_json = retrieve_req.json()
-        # logger.debug(results_json)
-        if results_json['faulted']:
-            logger.error(f"Something went wrong when generating the request")
-            self.status = JobStatus.FAULTED
-            return
-        results = results_json['generations']
-        for iter in range(len(results)):
-            if results[iter]["censored"]:
+        simple_client = AIHordeAPISimpleClient()
+        genResults, _ = simple_client.image_generate_request(
+            ImageGenerateAsyncRequest(
+                apikey='OH5Xt5xuteJFc-ozqvY8-A',
+                **self.submit_dict
+            ),
+        )
+        self.generations = genResults.generations
+        for giter in range(len(self.generations)):
+            if self.generations[giter].censored:
                 logger.info("Image received censored")
                 self.status = JobStatus.CENSORED
                 return
             try:
-                img_bytes = requests.get(results[iter]["img"]).content
-            except MissingSchema as e:
-                b64img = results[iter]["img"]
-                base64_bytes = b64img.encode('utf-8')
-                img_bytes = base64.b64decode(base64_bytes)
-            try:
-                img = Image.open(BytesIO(img_bytes))
+                img = simple_client.download_image_from_generation(self.generations[giter])
                 self.imgs.append(img)
-                self.img_ids.append(results[iter]["id"])
+                self.img_ids.append(self.generations[giter].id_)
             except Exception:
                 logger.error("Error reading image data")
                 self.status = JobStatus.FAULTED
                 return
-            filename = f"{self.unique_id}_{iter}_horde_generation.jpg"
+            filename = f"{self.unique_id}_{giter}_horde_generation.jpg"
             self.filenames.append(filename)
-            self.seeds.append(results[iter]["seed"])
+            self.seeds.append(self.generations[giter].seed)
             img.save(filename)
             logger.debug(f"Saved: {filename}")
         self.status = JobStatus.DONE
