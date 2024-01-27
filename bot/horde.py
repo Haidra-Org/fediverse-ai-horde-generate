@@ -167,11 +167,16 @@ class HordeGenerate:
             self.status = JobStatus.FAULTED
             return
         results = results_json['generations']
+        censored_count = 0
+        faulted_count = 0
         for iter in range(len(results)):
             if results[iter]["censored"]:
                 logger.info("Image received censored")
-                self.status = JobStatus.CENSORED
-                return
+                censored_count += 1
+                if censored_count + faulted_count == len(results):
+                    self.status = JobStatus.CENSORED
+                    return
+                continue
             try:
                 img_bytes = requests.get(results[iter]["img"]).content
             except MissingSchema as e:
@@ -184,8 +189,11 @@ class HordeGenerate:
                 self.img_ids.append(results[iter]["id"])
             except Exception:
                 logger.error("Error reading image data")
-                self.status = JobStatus.FAULTED
-                return
+                faulted_count += 1
+                if faulted_count + censored_count == len(results):
+                    self.status = JobStatus.FAULTED
+                    return
+                continue
             filename = f"{self.unique_id}_{iter}_horde_generation.jpg"
             self.filenames.append(filename)
             self.seeds.append(results[iter]["seed"])

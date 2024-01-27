@@ -5,7 +5,7 @@ class HordeBotReplyException(HordeBotException):
     reply: str
 
 class ModelNotServed(HordeBotReplyException):
-    reply = "Unfortunately it appears all models in this category are currently not being served. Please select another cateogory"
+    reply = "Unfortunately it appears all models in this category/style are currently not being served. Please select another category or style"
 
 class UnknownStyle(HordeBotReplyException):
     reply = "We could not discover this style in our database. Please pick one from [styles](https://github.com/amiantos/AI-Horde-Styles-Previews/blob/main/previews.md) or [categories](https://github.com/db0/Stable-Horde-Styles/blob/main/categories.json)"
