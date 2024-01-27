@@ -70,7 +70,7 @@ class MentionHandler:
             self.reply_faulted("Unfortunately it appears all models in this category are currently not being served. Please select another cateogory")
             return
         if len(styles_array) == 0:
-            self.reply_faulted("We could not discover this style in our database. Please pick one from style (https://github.com/db0/Stable-Horde-Styles/blob/main/styles.json) or categories (https://github.com/db0/Stable-Horde-Styles/blob/main/categories.json) ")
+            self.reply_faulted("We could not discover this style in our database. Please pick one from style (https://github.com/amiantos/AI-Horde-Styles-Previews/blob/main/previews.md) or categories (https://github.com/db0/Stable-Horde-Styles/blob/main/categories.json) ")
             return
         db_r.setex(str(self.notification["account"]["acct"]), timedelta(minutes=5), 1)
         # For now we're only have the same styles on each element. Later we might be able to have multiple ones.
