@@ -1,13 +1,9 @@
-import requests, os, time, random
-from mastodon.Mastodon import MastodonNetworkError, MastodonNotFoundError, MastodonGatewayTimeoutError, MastodonBadGatewayError, MastodonAPIError
-from bs4 import BeautifulSoup
-from datetime import timedelta
-from bot.logger import logger
-from bot.redisctrl import db_r
+import os
 from bot.horde import HordeMultiGen, JobStatus
 from bot.lemmy_ctrl import lemmy, lemmy_image_community_id
 from bot.style import Styling
 from bot.exceptions import HordeBotReplyException, HordeBotException
+from bot.logger import logger
 
 class LemmyMentionHandler:
 
@@ -43,25 +39,23 @@ class LemmyMentionHandler:
             return
         media_dicts = []
         image_body = ''
-        comment_body = f"Here are some images matching your request\n\nPrompt: {styling.prompt}\n\nStyle: {styling.style}\n\n"
         done_jobs = gen.get_all_done_jobs()
         for job in done_jobs:
             for iter_fn in range(len(job.filenames)):
                 logger.debug(f"Uploading {job.filenames[iter_fn]}...")
                 for iter in range(3):
                     try:
-                        image_data = lemmy.upload(
+                        image_data = lemmy.image.upload(
                             image_path=job.filenames[iter_fn],
-                        )
+                        )[0]
+                        media_dicts.append(image_data)
+                        image_body += f"![Image with seed {job.seeds[iter_fn]} generated via AI Horde through @aihorde@lemmy.dbzer0.com. Prompt: {job.prompt}]({image_data['image_url']})"
                         break
                     except Exception as err:
                         # If a file fails, we skip it
                         if iter >= 2:
                             continue
-                        logger.warning(f"Error '{err}' when uploading files. Retry {iter+1}/3")
-                media_dicts.append(image_data)
-                image_body += f"![Image with seed {job.seeds[iter_fn]} generated via AI Horde through @aihorde@lemmy.dbzer0.com. Prompt: {job.prompt}]({image_data['image_url']})"
-                comment_body += f"![Image with seed {job.seeds[iter_fn]} generated via AI Horde through @aihorde@lemmy.dbzer0.com. Prompt: {job.prompt}]({image_data['image_url']})"
+                        logger.warning(f"Error '{err}' when uploading files. Retry {iter+1}/3")                
                 logger.debug(f"Uploaded {job.filenames[iter_fn]}")
         if len(media_dicts) == 0:
             self.reply_faulted("Something went wrong when trying to fulfil your request. Please try again later")
@@ -71,14 +65,20 @@ class LemmyMentionHandler:
         post_result = lemmy.post(
             community_id=lemmy_image_community_id,
             name=f"{styling.style}: {styling.prompt}"[0:200],
-            url=media_dicts[0]["url"],
+            url=media_dicts[0]["image_url"],
             body=f"Prompt: {styling.prompt}\n\nStyle: {styling.style}\n\n{image_body}"
         )
         if not post_result:
             self.reply_faulted("Failed to upload generated images to Lemmy. Please try again later")
             self.cleanup_files(gen)
             return
-        logger.debug(post_result)
+        post_url = post_result['post_view']['post']['ap_id']
+        comment_body = (
+            f"[Here are some images]({post_url}) matching your request\n\n"
+            f"Prompt: {styling.prompt}\n\n"
+            f"Style: {styling.style}\n\n"
+            f"{image_body}"
+        )
         logger.info(f"replying to {self.comment_id}: {self.mention_content}")
         for iter in range(4):
             try:

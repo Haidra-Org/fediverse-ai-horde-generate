@@ -1,9 +1,7 @@
-import requests, os, time,random, re
-from mastodon.Mastodon import MastodonNetworkError, MastodonNotFoundError, MastodonGatewayTimeoutError, MastodonBadGatewayError, MastodonAPIError
-from datetime import timedelta
-from bot import logger, db_r, HordeMultiGen, mastodon, JobStatus
+import requests,time,random, re
+from bot.logger import logger
+from bot.horde import HordeMultiGen
 from bot.exceptions import *
-from bot.lemmy_ctrl import lemmy
 
 imgen_params = {
     "n": 1,
@@ -34,7 +32,6 @@ class Styling:
     gen: HordeMultiGen
     submit_list: list[dict] = []
 
-    @logger.catch(reraise=True)
     def __init__(self, notification_text):
         self.notification_text = notification_text
         reg_res = term_regex.search(notification_text)
@@ -146,7 +143,7 @@ class Styling:
             if not self.get_model_worker_count(styles[requested_style]["model"], horde_models):
                 logger.error(f"Style '{requested_style}' appear to have no workers. Aborting.")
                 return None, None
-            n = 4
+            n = 1
             if styles[requested_style]["model"] == "SDXL_beta::stability.ai#6901":
                 n = 1
             for iter in range(n):
