@@ -51,12 +51,12 @@ class Styling:
         self.prepare_payload()
 
     def prepare_payload(self):
-        if self.styles_array is None:
+        if self.style_array is None:
             raise ModelNotServed
-        if len(self.styles_array) == 0:
+        if len(self.style_array) == 0:
             raise UnknownStyle
         self.submit_list = []
-        for style in self.styles_array:
+        for style in self.style_array:
             logger.debug(style)
             if "###" not in style["prompt"] and negprompt != '' and "###" not in negprompt:
                 negprompt = '###' + negprompt
