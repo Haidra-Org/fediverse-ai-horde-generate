@@ -203,5 +203,5 @@ class Styling:
         return 0
 
     @staticmethod
-    def is_generation_request(self, text):
+    def is_generation_request(text):
         return term_regex.search(text)
