@@ -2,7 +2,7 @@ import threading
 import time
 from mastodon import StreamListener
 from bot.logger import logger
-from bot.lemmy_notifications import MentionHandler
+from bot.mastodon_notifications import MentionHandler
 
 
 class StreamListenerExtended(StreamListener):
