@@ -26,6 +26,9 @@ class StreamListenerExtended():
                 unread_only=True,
                 limit=10
             )
+            if mentions is None:
+                time.sleep(1)
+                continue
             for mention in mentions['mentions']:
                 mention_id = mention['person_mention']['id']
                 if mention_id not in self.session_seen_notifications:
