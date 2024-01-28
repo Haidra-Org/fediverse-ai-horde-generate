@@ -1,8 +1,11 @@
-import requests, os, time, random
+import os, time
 from mastodon.Mastodon import MastodonNetworkError, MastodonNotFoundError, MastodonGatewayTimeoutError, MastodonBadGatewayError, MastodonAPIError
 from bs4 import BeautifulSoup
 from datetime import timedelta
-from bot import logger, db_r, HordeMultiGen, mastodon, JobStatus
+from bot.logger import logger, 
+from bot.redisctrl import db_r
+from bot.horde import HordeMultiGen, JobStatus
+from bot.mastodon_ctrl import mastodon
 from bot.lemmy_ctrl import lemmy, lemmy_image_community_id
 from bot.ratings import polled_ratings
 from bot.style import Styling
