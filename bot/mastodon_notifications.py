@@ -3,7 +3,7 @@ from mastodon.Mastodon import MastodonNetworkError, MastodonNotFoundError, Masto
 from bs4 import BeautifulSoup
 from datetime import timedelta
 from bot.logger import logger 
-from bot.redisctrl import db_r
+from bot import db_r
 from bot.horde import HordeMultiGen, JobStatus
 from bot.mastodon_ctrl import mastodon
 from bot.lemmy_ctrl import lemmy, lemmy_image_community_id

@@ -1,4 +1,3 @@
-import os
 import bot.env
 from bot.argparser import args
 from bot.logger import logger, set_logger_verbosity, quiesce_logger
