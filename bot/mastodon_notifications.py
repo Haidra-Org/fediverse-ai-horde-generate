@@ -2,7 +2,7 @@ import os, time
 from mastodon.Mastodon import MastodonNetworkError, MastodonNotFoundError, MastodonGatewayTimeoutError, MastodonBadGatewayError, MastodonAPIError
 from bs4 import BeautifulSoup
 from datetime import timedelta
-from bot.logger import logger, 
+from bot.logger import logger 
 from bot.redisctrl import db_r
 from bot.horde import HordeMultiGen, JobStatus
 from bot.mastodon_ctrl import mastodon
