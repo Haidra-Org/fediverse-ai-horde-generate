@@ -111,16 +111,28 @@ class HordeGenerate:
     def generate_image(self):
         logger.debug(f"Submitting: {self.submit_dict}")
         self.status = JobStatus.WORKING
-        try:
-            submit_req = requests.post(f'{HORDE_URL}/api/v2/generate/async', json = self.submit_dict, headers = self.headers)
-        except Exception as err:
-            logger.warning(f"Exception on submit: {err}")
-            self.status = JobStatus.FAULTED
-            return
-        if not submit_req.ok:
-            logger.warning(f"Unexpected error code on submit: {submit_req.text}")
-            self.status = JobStatus.FAULTED
-            return
+        for attempt in range(5):
+            try:
+                submit_req = requests.post(f'{HORDE_URL}/api/v2/generate/async', json = self.submit_dict, headers = self.headers)
+            except Exception as err:
+                logger.warning(f"Exception on submit: {err}")
+                self.status = JobStatus.FAULTED
+                return
+            if not submit_req.ok:
+                try:
+                    submit_results = submit_req.json()
+                except:
+                    logger.warning(f"Unexpected error code on submit: {submit_req.status_code}: {submit_req.text}")
+                    self.status = JobStatus.FAULTED
+                    return
+                if "message" in submit_results and submit_results["message"] == "2 per 1 second":
+                    logger.debug(f"Hit 2 per 1s rate limit. Try {attempt+1}/5")
+                    time.sleep(1)
+                    continue
+                logger.warning(f"Unexpected error code on submit: {submit_req.status_code}: {submit_req.text}")
+                self.status = JobStatus.FAULTED
+                return
+            break
         submit_results = submit_req.json()
         # logger.debug(submit_results)
         self.req_id = submit_results['id']
