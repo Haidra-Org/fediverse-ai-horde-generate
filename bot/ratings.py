@@ -4,7 +4,7 @@ import requests
 import time
 from loguru import logger
 from datetime import datetime
-from . import  mastodon
+from bot.mastodon_ctrl import  mastodon
 
 class PolledRatings:
 
