@@ -15,7 +15,7 @@ def init_mastodon():
     from bot.mastodon_notifications import db_r, MentionHandler
     from bot.mastodon_listener import StreamListenerExtended
     from bot.mastodon_ctrl import mastodon
-    from bot.redisctrl import db_r
+    from bot import db_r
     notifications = mastodon.notifications(
         exclude_types=["follow", "favourite", "reblog", "poll", "follow_request"]
     )
