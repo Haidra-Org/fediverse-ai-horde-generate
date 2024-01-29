@@ -1,6 +1,7 @@
 import requests,time,random, re
 from bot.logger import logger
 from bot.horde import HordeMultiGen
+from bot.argparser import args
 from bot.exceptions import *
 
 imgen_params = {
@@ -53,10 +54,10 @@ class Styling:
         if len(self.style_array) == 0:
             raise ModelNotServed
         self.submit_list = []
-        n_per = 4
-        if len(self.style_array) == 2:
-            n_per = 2
-        if len(self.style_array) > 2:
+        n_per = args.number
+        if len(self.style_array) == int(args.number / 2):
+            n_per = int(args.number / 2)
+        if len(self.style_array) > int(args.number / 2):
             n_per = 1
         for style in self.style_array:
             logger.debug(style)
