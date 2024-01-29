@@ -55,7 +55,7 @@ class Styling:
             raise ModelNotServed
         self.submit_list = []
         n_per = args.number
-        if len(self.style_array) == int(args.number / 2):
+        if len(self.style_array) == int(args.number / 2) and len(self.style_array) > 1:
             n_per = int(args.number / 2)
         if len(self.style_array) > int(args.number / 2):
             n_per = 1
