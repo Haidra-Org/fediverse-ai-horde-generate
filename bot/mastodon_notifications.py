@@ -39,12 +39,12 @@ class MentionHandler:
         self.status = JobStatus.WORKING
         logger.debug(f"Handling notification {self.notification_id} as a mention")
         # logger.debug([self.notification_id, last_parsed_notification, self.notification_id < last_parsed_notification])
-        if db_r.get(str(self.notification["account"]["acct"])) and str(self.notification["account"]["acct"]) != 'stablehorde':
-            logger.warning(f"Too frequent requests from {self.notification['account']['acct']}")
-            self.reply_faulted("Unfortunately this bot has been rate limited. Please only send one request every 3 minutes.")
-            return
         try:
             styling = Styling(self.mention_content)
+            if db_r.get(str(self.notification["account"]["acct"])) and str(self.notification["account"]["acct"]) != 'stablehorde':
+                logger.warning(f"Too frequent requests from {self.notification['account']['acct']}")
+                self.reply_faulted("Unfortunately this bot has been rate limited. Please only send one request every 3 minutes.")
+                return
             db_r.setex(str(self.notification["account"]["acct"]), timedelta(minutes=3), 1)
             gen: HordeMultiGen = styling.request_images(self.notification_id)
         except HordeBotReplyException as err:
