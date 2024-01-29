@@ -59,7 +59,6 @@ class Styling:
             n_per = int(args.number / 2)
         if len(self.style_array) > int(args.number / 2):
             n_per = 1
-        logger.debug([args.number,len(self.style_array),n_per])
         for style in self.style_array:
             logger.debug(style)
             negprompt = self.negprompt
