@@ -115,6 +115,32 @@ class Styling:
                 "url": "https://aihorde.net/api/v2/status/models",
                 "default": []
             },
+            # Enhancements
+            {
+                "url": "https://raw.githubusercontent.com/db0/Stable-Horde-Styles/main/enhancements.json",
+                "default": {
+                    "tis": [
+                        {
+                            "name": "100191",
+                            "strength": 1,
+                            "inject_ti": "negprompt",
+                            "id": 100191
+                        },
+                        {
+                            "name": "5224",
+                            "strength": 1,
+                            "inject_ti": "negprompt",
+                            "id": 5224
+                        },
+                        {
+                            "name": "55700",
+                            "strength": 1,
+                            "inject_ti": "negprompt",
+                            "id": 55700
+                        }
+                    ]
+                }
+            },
         ]
         logger.debug("Downloading styles")
         jsons = []
@@ -132,6 +158,7 @@ class Styling:
                     time.sleep(1)
         return jsons
 
+    @logger.catch(reraise=True)
     def parse_style(self):
         '''retrieves the styles requested and returns a list of unformated style prompts and the models to use'''
         global style_regex
@@ -139,6 +166,7 @@ class Styling:
         styles = jsons[0]
         categories = jsons[1]
         horde_models = jsons[2]
+        enhancements = jsons[3]
         requested_style = "featured"
         sr = style_regex.search(self.notification_text)
         if sr:
@@ -150,7 +178,7 @@ class Styling:
             if not self.get_model_worker_count(styles[requested_style]["model"], horde_models):
                 logger.error(f"Style '{requested_style}' appear to have no workers. Aborting.")
                 return None, None
-            self.style_array.append(styles[requested_style])
+            self.style_array.append(self.prep_style(styles[requested_style],enhancements))
         elif requested_style in categories:
             self.style_array = []
             category_styles = self.expand_category(categories,requested_style)
@@ -175,13 +203,25 @@ class Styling:
                 # We don't want to mix SD1.5/SD2 with SDXL_beta
                 if uses_sdxl_beta is False and is_sdxl_beta:
                     continue
-                self.style_array.append(styles[random_style])
+                self.style_array.append(self.prep_style(styles[random_style],enhancements))
                 # When the category has an sdxl_beta style, we use only 1 of them as it gets 2 images from that one
                 if is_sdxl_beta is True:
                     break
                 if uses_sdxl_beta is None:
                     uses_sdxl_beta = is_sdxl_beta
         self.style = requested_style
+
+    def prep_style(self, unprepared_style, enhancements):
+        style_to_add = unprepared_style.copy()
+        if style_to_add.get("enhance", False):
+            for key,value in enhancements.items():
+                logger.info(value)
+                if key in style_to_add:
+                    style_to_add[key] += value
+                else:
+                    style_to_add[key] = value
+        return style_to_add
+
 
     def expand_category(self,categories, category_name):
         styles = []
