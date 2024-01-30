@@ -214,7 +214,7 @@ class Styling:
     def prep_style(self, unprepared_style, enhancements):
         style_to_add = unprepared_style.copy()
         if style_to_add.get("enhance", False):
-            for key,value in enhancements.items():
+            for key,value in enhancements["stable diffusion 1"].items():
                 logger.info(value)
                 if key in style_to_add:
                     style_to_add[key] += value
