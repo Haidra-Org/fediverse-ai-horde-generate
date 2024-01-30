@@ -38,7 +38,7 @@ class Styling:
         reg_res = term_regex.search(notification_text)
         if not reg_res:
             raise HordeBotException
-        unformated_prompt = reg_res.group(1)
+        unformated_prompt = reg_res.group(2)
         if modifier_seek_regex.search(unformated_prompt):
             por = prompt_only_regex.search(notification_text)
             unformated_prompt = por.group(1)
