@@ -72,7 +72,8 @@ class LemmyMentionHandler:
             self.reply_faulted("Failed to upload generated images to Lemmy. Please try again later")
             self.cleanup_files(gen)
             return
-        post_url = post_result['post_view']['post']['ap_id']
+        post_stub = post_result['post_view']['post']['ap_id'].split('//')[1]
+        post_url = f"https://lemmyverse.link/{post_stub}"
         comment_body = (
             f"[Here are some images]({post_url}) matching your request\n\n"
             f"Prompt: {styling.prompt}\n\n"
