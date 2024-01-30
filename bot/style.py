@@ -41,7 +41,7 @@ class Styling:
         unformated_prompt = reg_res.group(2)
         if modifier_seek_regex.search(unformated_prompt):
             por = prompt_only_regex.search(notification_text)
-            unformated_prompt = por.group(1)
+            unformated_prompt = por.group(2)
         self.prompt = unformated_prompt
         if "###" in unformated_prompt:
             self.prompt, self.negprompt = unformated_prompt.split("###", 1)
