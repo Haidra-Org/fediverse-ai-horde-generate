@@ -21,7 +21,7 @@ generic_submit_dict = {
 term_regex = re.compile(r'draw (for )?(?:me|us) (.+)', re.IGNORECASE)
 modifier_seek_regex = re.compile(r'style:', re.IGNORECASE)
 prompt_only_regex = re.compile(r'draw (for )?(?:me|us) (.+)style:', re.IGNORECASE)
-style_regex = re.compile(r'style: *([\w+*._ -]+)', re.IGNORECASE)
+style_regex = re.compile(r"style: *([\w+*._' -]+)", re.IGNORECASE)
 
 class Styling:
     
