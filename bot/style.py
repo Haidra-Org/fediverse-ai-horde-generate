@@ -32,8 +32,9 @@ class Styling:
     style_array: list[str] = None
     gen: HordeMultiGen
     submit_list: list[dict] = []
+    proxied_account: str
 
-    def __init__(self, notification_text):
+    def __init__(self, notification_text, proxied_account):
         self.notification_text = notification_text
         reg_res = term_regex.search(notification_text)
         if not reg_res:
@@ -43,6 +44,7 @@ class Styling:
             por = prompt_only_regex.search(notification_text)
             unformated_prompt = por.group(2)
         self.prompt = unformated_prompt
+        self.proxied_account = proxied_account
         if "###" in unformated_prompt:
             self.prompt, self.negprompt = unformated_prompt.split("###", 1)
         self.parse_style()
@@ -75,6 +77,7 @@ class Styling:
             submit_dict["params"]["cfg_scale"] = style.get("cfg_scale", 7.5)
             submit_dict["params"]["hires_fix"] = style.get("hires_fix", False)
             submit_dict["params"]["n"] = n_per
+            submit_dict["proxied_account"] = self.proxied_account
             if "loras" in style:
                 submit_dict["params"]["loras"] = style["loras"]
             if "tis" in style:

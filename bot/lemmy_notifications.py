@@ -11,6 +11,7 @@ class LemmyMentionHandler:
         self.status = JobStatus.INIT
         self.mention = mention
         self.mention_id = self.mention['person_mention']['id']
+        self.actor_id = self.mention['creator']['actor_id']
         self.comment_id = self.mention['person_mention']['comment_id']
         self.mention_content = self.mention['comment']['content']
 
@@ -27,7 +28,7 @@ class LemmyMentionHandler:
         logger.debug(f"Handling mention {self.mention_id}")
         # logger.debug([self.mention_id, last_parsed_notification, self.mention_id < last_parsed_notification])
         try:
-            styling = Styling(self.mention_content)
+            styling = Styling(self.mention_content, self.actor_id)
             gen: HordeMultiGen = styling.request_images(self.mention_id)
         except HordeBotReplyException as err:
             self.reply_faulted(err.reply)
