@@ -91,7 +91,7 @@ class HordeGenerate:
         self.status = JobStatus.INIT
         self.headers = {
             "apikey": os.environ['HORDE_API'],
-            "Client-Agent": "db0_fediverse_bot:2.0.0:(discord)db0#1625"
+            "Client-Agent": "db0_fediverse_bot:2.0.1:(discord)db0#1625"
         }
         self.filenames = []
         self.seeds = []

@@ -1,4 +1,4 @@
-import os, time
+import os, time, json
 from mastodon.Mastodon import MastodonNetworkError, MastodonNotFoundError, MastodonGatewayTimeoutError, MastodonBadGatewayError, MastodonAPIError
 from bs4 import BeautifulSoup
 from datetime import timedelta
@@ -18,6 +18,7 @@ class MentionHandler:
         self.notification = notification
         self.incoming_status = self.notification["status"]
         self.notification_id = self.notification["id"]
+        self.acct = self.notification["account"]['acct']
         self.request_id = self.incoming_status["id"]
         self.tags = [tag.name for tag in self.incoming_status["tags"]]
 
@@ -40,7 +41,7 @@ class MentionHandler:
         logger.debug(f"Handling notification {self.notification_id} as a mention")
         # logger.debug([self.notification_id, last_parsed_notification, self.notification_id < last_parsed_notification])
         try:
-            styling = Styling(self.mention_content)
+            styling = Styling(self.mention_content, self.acct)
             if db_r.get(str(self.notification["account"]["acct"])) and str(self.notification["account"]["acct"]) != 'stablehorde':
                 logger.warning(f"Too frequent requests from {self.notification['account']['acct']}")
                 self.reply_faulted("Unfortunately this bot has been rate limited. Please only send one request every 3 minutes.")
@@ -143,7 +144,7 @@ class MentionHandler:
                             poll_dict = ret_poll,
                             horde_job = done_jobs[0],
                         )
-                if visibility in ["public", "unlisted"]:
+                if visibility in ["public", "unlisted"] and self.acct not in json.loads(os.getenv("CROSSPOST_IGNORE_LIST")):
                     logger.info("Initiating crosspost to Bot Art")
                     image_body = ''
                     for media_dict in media_dicts:

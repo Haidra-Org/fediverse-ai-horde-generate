@@ -1,4 +1,5 @@
 import os
+import json
 from bot.horde import HordeMultiGen, JobStatus
 from bot.lemmy_ctrl import lemmy, lemmy_image_community_id
 from bot.style import Styling
@@ -11,6 +12,7 @@ class LemmyMentionHandler:
         self.status = JobStatus.INIT
         self.mention = mention
         self.mention_id = self.mention['person_mention']['id']
+        self.actor_id = self.mention['creator']['actor_id']
         self.comment_id = self.mention['person_mention']['comment_id']
         self.mention_content = self.mention['comment']['content']
 
@@ -27,7 +29,7 @@ class LemmyMentionHandler:
         logger.debug(f"Handling mention {self.mention_id}")
         # logger.debug([self.mention_id, last_parsed_notification, self.mention_id < last_parsed_notification])
         try:
-            styling = Styling(self.mention_content)
+            styling = Styling(self.mention_content, self.actor_id)
             gen: HordeMultiGen = styling.request_images(self.mention_id)
         except HordeBotReplyException as err:
             self.reply_faulted(err.reply)
@@ -61,17 +63,18 @@ class LemmyMentionHandler:
             self.reply_faulted("Something went wrong when trying to fulfil your request. Please try again later")
             self.cleanup_files(gen)
             return
-        logger.info(f"Posting to Bot Art")
-        post_result = lemmy.post(
-            community_id=lemmy_image_community_id,
-            name=f"{styling.style}: {styling.prompt}"[0:200],
-            url=media_dicts[0]["image_url"],
-            body=f"Prompt: {styling.prompt}\n\nStyle: {styling.style}\n\n{image_body}"
-        )
-        if not post_result:
-            self.reply_faulted("Failed to upload generated images to Lemmy. Please try again later")
-            self.cleanup_files(gen)
-            return
+        if self.actor_id not in json.loads(os.getenv("CROSSPOST_IGNORE_LIST")):            
+            logger.info(f"Posting to Bot Art")
+            post_result = lemmy.post(
+                community_id=lemmy_image_community_id,
+                name=f"{styling.style}: {styling.prompt}"[0:200],
+                url=media_dicts[0]["image_url"],
+                body=f"Prompt: {styling.prompt}\n\nStyle: {styling.style}\n\n{image_body}"
+            )
+            if not post_result:
+                self.reply_faulted("Failed to upload generated images to Lemmy. Please try again later")
+                self.cleanup_files(gen)
+                return
         post_stub = post_result['post_view']['post']['ap_id'].split('//')[1]
         post_url = f"https://lemmyverse.link/{post_stub}"
         comment_body = (
