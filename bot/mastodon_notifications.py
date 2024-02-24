@@ -144,7 +144,7 @@ class MentionHandler:
                             poll_dict = ret_poll,
                             horde_job = done_jobs[0],
                         )
-                if visibility in ["public", "unlisted"] and self.actor_id not in json.loads(os.getenv("CROSSPOST_IGNORE_LIST")):
+                if visibility in ["public", "unlisted"] and self.acct not in json.loads(os.getenv("CROSSPOST_IGNORE_LIST")):
                     logger.info("Initiating crosspost to Bot Art")
                     image_body = ''
                     for media_dict in media_dicts:
