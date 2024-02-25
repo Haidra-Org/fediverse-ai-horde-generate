@@ -199,8 +199,8 @@ class HordeGenerate:
                 img = Image.open(BytesIO(img_bytes))
                 self.imgs.append(img)
                 self.img_ids.append(results[iter]["id"])
-            except Exception:
-                logger.error("Error reading image data")
+            except Exception as err:
+                logger.error(f"Error reading image data: {err}")
                 faulted_count += 1
                 if faulted_count + censored_count == len(results):
                     self.status = JobStatus.FAULTED
