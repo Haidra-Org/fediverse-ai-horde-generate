@@ -200,11 +200,10 @@ class HordeGenerate:
                 self.imgs.append(img)
                 self.img_ids.append(results[iter]["id"])
             except Exception as err:
-                logger.error("Error reading image data")
+                logger.error(f"Error reading image data: {err}")
                 faulted_count += 1
                 if faulted_count + censored_count == len(results):
                     self.status = JobStatus.FAULTED
-                    raise err
                     return
                 continue
             filename = f"{self.unique_id}_{iter}_horde_generation.jpg"
