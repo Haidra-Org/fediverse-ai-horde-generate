@@ -76,6 +76,7 @@ class Styling:
             submit_dict["params"]["steps"] = style.get("steps", 45)
             submit_dict["params"]["cfg_scale"] = style.get("cfg_scale", 7.5)
             submit_dict["params"]["hires_fix"] = style.get("hires_fix", False)
+            submit_dict["params"]["clip_skip"] = style.get("clip_skip", 1)
             submit_dict["params"]["n"] = n_per
             submit_dict["proxied_account"] = self.proxied_account
             if "loras" in style:
