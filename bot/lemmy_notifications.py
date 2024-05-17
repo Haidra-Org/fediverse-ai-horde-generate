@@ -48,7 +48,7 @@ class LemmyMentionHandler:
                 for iter in range(3):
                     try:
                         image_data = lemmy.image.upload(
-                            image_path=job.filenames[iter_fn],
+                            image=job.filenames[iter_fn],
                         )[0]
                         media_dicts.append(image_data)
                         image_body += f"![Image with seed {job.seeds[iter_fn]} generated via AI Horde through @aihorde@lemmy.dbzer0.com. Prompt: {job.prompt}]({image_data['image_url']})"
