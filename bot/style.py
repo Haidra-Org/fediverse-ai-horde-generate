@@ -6,7 +6,6 @@ from bot.exceptions import *
 
 imgen_params = {
     "n": 1,
-    "karras": True,
     # "post_processing": ['GFPGAN'],
 }
 generic_submit_dict = {
@@ -16,7 +15,8 @@ generic_submit_dict = {
     "r2": True,
     "shared": True,
     "trusted_workers": True,
-    "models": ["stable_diffusion"]
+    "models": ["stable_diffusion"],
+    "extra_slow_worker": True
 }
 term_regex = re.compile(r'draw (for )?(?:me|us) (.+)', re.IGNORECASE)
 modifier_seek_regex = re.compile(r'style:', re.IGNORECASE)
@@ -77,6 +77,7 @@ class Styling:
             submit_dict["params"]["cfg_scale"] = style.get("cfg_scale", 7.5)
             submit_dict["params"]["hires_fix"] = style.get("hires_fix", False)
             submit_dict["params"]["clip_skip"] = style.get("clip_skip", 1)
+            submit_dict["params"]["karras"] = style.get("karras", True)
             submit_dict["params"]["n"] = n_per
             submit_dict["proxied_account"] = self.proxied_account
             if "loras" in style:
